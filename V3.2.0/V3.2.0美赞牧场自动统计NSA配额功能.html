@@ -1,0 +1,2213 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>扫码配置 · PC 后台原型</title>
+<style>
+  :root{--navy:#102a4d;--navy-deep:#0b2140;--blue:#4c7ff0;--blue-light:#eef3ff;--text:#26364a;--muted:#8c9bae;--border:#e8edf4;--bg:#f5f7fb;--danger:#e5544d;--success:#1eae74}
+  *{box-sizing:border-box}body{margin:0;color:var(--text);font:14px/1.45 "Microsoft YaHei","PingFang SC",Arial,sans-serif;background:#fff}button,input,select,textarea{font:inherit}button{cursor:pointer}
+  .shell{display:flex;min-height:100vh;background:#fff}
+  .sidebar{position:fixed;left:0;top:52px;z-index:5;width:238px;height:calc(100vh - 52px);overflow:auto;color:#c1d0e7;background:linear-gradient(180deg,#102b4e,#0b2140)}
+  .brand{height:72px;padding:18px 20px 12px;border-bottom:1px solid rgba(255,255,255,.04);display:flex;align-items:center;gap:10px;color:#fff;font-size:19px;font-weight:700;white-space:nowrap}
+  .brand-mark{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#fff;color:var(--navy);font-size:17px}
+  .nav-group{padding:16px 14px 4px}.nav-label{margin:0 0 8px;color:#7185a1;font-size:13px}.nav-item{display:flex;align-items:center;gap:9px;height:40px;padding:0 12px;border-radius:4px;color:#c1d0e7;font-size:14px;cursor:pointer}
+  .nav-item.parent{color:#fff;font-size:15px}.nav-item.parent.open{background:rgba(255,255,255,.06)}
+  .nav-item .icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;opacity:.9;font-size:14px}
+  .nav-item.active{background:#477cf1;color:#fff}
+  .subnav{margin:4px 0 10px}.subnav .nav-item{padding-left:40px;position:relative;font-size:13.5px}
+  .subnav .nav-item.active{margin:0;padding-left:40px;border-radius:4px;background:transparent;color:#fff;font-weight:600}
+  .subnav .nav-item.active::before{content:'';position:absolute;left:24px;top:50%;transform:translateY(-50%);width:6px;height:6px;border-radius:50%;background:#fff}
+  .main{width:calc(100% - 238px);margin-left:238px;min-width:1000px}
+  .topbar{height:52px;display:flex;align-items:center;padding:0 24px 0 280px;background:#eee;color:#5d6c7f;font-size:14px;gap:10px}
+  .topbar .crumb{color:#7d8897}
+  .tabs{display:flex;gap:40px;margin:16px 24px 0;border-bottom:1px solid var(--border)}
+  .tabs span{padding:0 3px 11px;font-size:16px;cursor:pointer;color:#5d6c7f}
+  .tabs .current{border-bottom:3px solid var(--blue);color:var(--blue);font-weight:700}
+  .breadcrumb{height:56px;display:flex;align-items:center;padding:0 24px;border-bottom:1px solid var(--border);font-size:15px;color:#5d6c7f}
+  .breadcrumb a{color:var(--blue);cursor:pointer}
+  .content{padding:20px 24px 60px;background:var(--bg);min-height:calc(100vh - 52px - 56px)}
+  .page{display:none}.page.active{display:block}
+  /* 卡片 */
+  .card{background:#fff;border:1px solid var(--border);border-radius:6px;padding:18px 20px;margin-bottom:16px}
+  .card-title{font-size:16px;font-weight:700;color:#17283d;margin-bottom:16px}
+  /* 筛选区 */
+  .filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .filters .lbl{color:#4a586a;font-size:13px}
+  .field,.select{height:36px;padding:0 12px;border:1px solid #dfe5ee;border-radius:4px;outline:none;color:#4a586a;background:#fff;font-size:13px}
+  .field{width:170px}.field.w-sm{width:130px}.field.w-lg{width:260px}
+  .select{display:flex;align-items:center;justify-content:space-between;color:#9ca8b7;width:150px}
+  .select:after{content:'⌄';color:#9ca8b7}
+  .actions{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  /* 按钮 */
+  .btn{height:35px;padding:0 16px;border:1px solid var(--border);border-radius:4px;background:#fff;color:#5d6c7f;font-size:13px;display:inline-flex;align-items:center;gap:4px}
+  .btn.primary{border-color:var(--blue);background:var(--blue);color:#fff}
+  .btn.danger{border-color:var(--danger);background:var(--danger);color:#fff}
+  .btn.small{height:32px;padding:0 12px}
+  .btn.big{height:44px;padding:0 26px;font-size:14px}
+  /* 表格 */
+  .table-wrap{overflow:auto;border:1px solid var(--border);border-radius:4px;background:#fff}
+  table{border-collapse:collapse;width:100%;min-width:1200px;font-size:13px}
+  th,td{height:43px;padding:8px 12px;border-right:1px solid #edf0f4;border-bottom:1px solid #edf0f4;text-align:left;white-space:nowrap}
+  th{background:#fafbfc;color:#344254;font-weight:700}
+  tbody tr:nth-child(even){background:#fbfcfe}
+  tbody tr:hover{background:#f4f7ff}
+  table .num{color:#4a586a;text-align:center}
+  .link{color:#5b82f2;cursor:pointer}.link:hover{text-decoration:underline}
+  .status{display:inline-flex;gap:5px;align-items:center}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--success)}
+  .dot.off{background:#c0c8d4}
+  .td-2line{line-height:1.35}
+  .cell-input{border:1px solid #dfe5ee;border-radius:3px;height:28px;padding:0 8px;font-size:12.5px;color:#4a586a;width:100%;min-width:150px}
+  /* switch */
+  .switch{position:relative;display:inline-block;width:36px;height:20px;vertical-align:middle}
+  .switch input{opacity:0;width:0;height:0}
+  .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#c0c8d4;border-radius:20px;transition:.2s}
+  .slider:before{position:absolute;content:"";height:14px;width:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+  input:checked + .slider{background:var(--success)}
+  input:checked + .slider:before{transform:translateX(16px)}
+  /* 表单 */
+  .form{max-width:1160px}
+  .form-row{display:flex;align-items:flex-start;margin:16px 0}
+  .form-row label{width:150px;flex-shrink:0;text-align:right;padding-top:9px;color:#26364a;font-size:14px}
+  .required:before{content:'*';margin-right:5px;color:var(--danger)}
+  .form-body{flex:1;min-width:0}
+  .input-lg{height:40px;padding:0 12px;border:1px solid #d9e0ea;border-radius:4px;outline:none;color:#5d6a78;font-size:14px}
+  .input-lg.w{width:360px}.input-lg.w-lg{width:480px}
+  .radios{padding-top:9px;display:flex;gap:30px;font-size:14px}
+  .radios label{width:auto;text-align:left;padding:0;display:flex;align-items:center;gap:6px}
+  .radio{accent-color:var(--blue)}
+  .btn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .hint{color:#8a98a9;font-size:13px;margin:8px 0}
+  .sticky-actions{position:sticky;bottom:0;z-index:3;margin:0 -20px -18px;padding:16px 20px;border-top:1px solid var(--border);background:rgba(255,255,255,.97);display:flex;gap:12px;padding-left:170px;border-radius:0 0 6px 6px}
+  /* 详情网格 */
+  .detail-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px 24px;color:#68788b;font-size:14px}
+  .detail-grid b{font-weight:400;color:#596a7f}
+  .detail-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+  .detail-head .card-title{margin:0}
+  .badge{display:inline-flex;align-items:center;height:22px;padding:0 8px;border:1px solid var(--success);color:var(--success);font-size:12px;border-radius:3px}
+  .section-title{font-size:15px;font-weight:700;color:#17283d;margin:20px 0 12px;padding-left:8px;border-left:3px solid var(--blue)}
+  .inner-tabs{display:flex;gap:24px;border-bottom:1px solid var(--border);margin-bottom:16px}
+  .inner-tabs span{padding:0 2px 10px;font-size:14px;cursor:pointer;color:#5d6c7f}
+  .inner-tabs span.active{border-bottom:2px solid var(--blue);color:var(--blue);font-weight:700}
+  /* toast */
+  #toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-10px);background:rgba(0,0,0,.78);color:#fff;padding:10px 22px;border-radius:4px;font-size:13px;opacity:0;pointer-events:none;transition:all .25s;z-index:999}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  /* NSA 隐藏字段 —— 删除此规则即可恢复（业务方要求隐藏） */
+  .nsa-hide{display:none !important}
+</style>
+<style>.app-shell *{ margin: 0; padding: 0; box-sizing: border-box; }
+.app-shell {
+    --bg: #f5f7fa;
+    --white: #ffffff;
+    --text: #333333;
+    --text-secondary: #666666;
+    --text-tertiary: #999999;
+    --primary: #2a82e4;
+    --primary-light: #eaf3fd;
+    --border: #e8e8e8;
+    --danger: #ff4d4f;
+    --success: #52c41a;
+  }
+.app-shell{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+.app-shell .page-wrap{
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--bg);
+    position: relative;
+  }
+.app-shell /* 状态栏 */
+  .status-bar{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 16px 4px;
+    font-size: 12px;
+    color: var(--text);
+  }
+.app-shell .status-right{ display: flex; align-items: center; gap: 4px; }
+.app-shell .battery{ width: 18px; height: 9px; border: 1px solid #333; border-radius: 2px; position: relative; }
+.app-shell .battery::after{ content: ''; position: absolute; right: -2px; top: 2px; width: 2px; height: 5px; background: #333; border-radius: 0 1px 1px 0; }
+.app-shell .battery-fill{ width: 100%; height: 100%; background: #333; }
+.app-shell /* 顶部导航 */
+  .header{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px 14px;
+    position: relative;
+  }
+.app-shell .back{
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+  }
+.app-shell .back::before{
+    content: '';
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-left: 2px solid var(--text);
+    border-bottom: 2px solid var(--text);
+    transform: rotate(45deg);
+    position: absolute;
+    left: 6px;
+    top: 7px;
+  }
+.app-shell .title{ font-size: 17px; font-weight: 600; color: var(--text); }
+.app-shell /* Tab */
+  .tabs{
+    display: flex;
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+  }
+.app-shell .tab{
+    flex: 1;
+    text-align: center;
+    padding: 14px 0 12px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    position: relative;
+    cursor: pointer;
+  }
+.app-shell .tab.active{ color: var(--primary); font-weight: 600; }
+.app-shell .tab.active::after{
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 3px;
+    background: var(--primary);
+    border-radius: 2px 2px 0 0;
+  }
+.app-shell /* 内容区 */
+  .content{ padding: 12px; display: none; }
+.app-shell .content.active{ display: block; }
+.app-shell /* 月份选择 */
+  .month-picker{
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+.app-shell .month-picker::after{
+    content: '';
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid var(--text);
+  }
+.app-shell .month-picker select{
+    appearance:none;-webkit-appearance:none;border:none;background:transparent;font:inherit;font-size:15px;font-weight:600;color:var(--text);padding-right:4px;outline:none;cursor:pointer
+  }
+.app-shell /* 卡片 */
+  .card{
+    background: var(--white);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+.app-shell /* 统计网格 */
+  .stat-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 0;
+  }
+.app-shell .stat-item{ text-align: center; }
+.app-shell .stat-value{
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+.app-shell .stat-label{
+    font-size: 12px;
+    color: var(--text-tertiary);
+    line-height: 1.4;
+  }
+.app-shell /* 配额卡片 */
+  .quota-title{
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+.app-shell .quota-rule{
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+.app-shell .quota-rule b{ color: var(--text); font-weight: 600; }
+.app-shell .quota-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 0;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+.app-shell /* 总配额 */
+  .total-quota{
+    font-size: 14px;
+    color: var(--text);
+    margin: 4px 0 14px;
+    font-weight: 500;
+  }
+.app-shell /* 礼品列表 */
+  .gift-list{}
+.app-shell .gift-item{
+    display: flex;
+    background: var(--white);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    align-items: center;
+  }
+.app-shell .gift-thumb{
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #e6f0ff 0%, #c9e0ff 100%);
+    flex-shrink: 0;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+.app-shell .gift-thumb img{ width: 100%; height: 100%; object-fit: cover; }
+.app-shell .gift-thumb::after{
+    content: '商品图';
+    font-size: 11px;
+    color: #88b8f0;
+  }
+.app-shell .gift-thumb img + ::after{ display: none; }
+.app-shell .gift-info{ flex: 1; min-width: 0; }
+.app-shell .gift-name{
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+.app-shell .gift-meta{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+.app-shell .gift-meta .remain{
+    color: var(--primary);
+    font-weight: 600;
+  }
+.app-shell .gift-arrow{
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    margin-left: 4px;
+    position: relative;
+  }
+.app-shell .gift-arrow::before{
+    content: '';
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #ccc;
+    border-top: 2px solid #ccc;
+    transform: rotate(45deg);
+    position: absolute;
+    left: 4px;
+    top: 6px;
+  }
+.app-shell /* 占位内容 */
+  .placeholder{
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text-tertiary);
+    font-size: 14px;
+  }
+  /* 端切换条（常驻顶部左侧，PC/APP 两种模式均可见） */
+  .top-dock{position:fixed;top:0;left:0;height:52px;width:280px;z-index:300;display:flex;align-items:center;padding:0 16px;gap:6px;background:linear-gradient(90deg,#102b4e,#0b2140);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+  .top-dock button{height:32px;border:none;background:rgba(255,255,255,.1);padding:0 14px;font-size:13px;color:#c1d0e7;cursor:pointer;border-radius:4px}
+  .top-dock button:hover{background:rgba(255,255,255,.16)}
+  .top-dock button.active{background:var(--blue);color:#fff;font-weight:600}
+  .app-view{display:none;margin-top:52px;padding:24px;justify-content:center;background:#eef1f6;min-height:calc(100vh - 52px)}
+  .app-view.show{display:flex}
+  .phone-frame{width:390px;height:844px;position:relative;background:#0b0e13;border-radius:38px;padding:10px;box-shadow:0 14px 44px rgba(0,0,0,.2)}
+  .app-shell{background:var(--bg);border-radius:28px;overflow:hidden;height:100%;overflow-y:auto}
+.app-mine *{margin: 0; padding: 0; box-sizing: border-box;}
+.app-mine{--bg: #f5f7fa;
+    --white: #ffffff;
+    --text: #333333;
+    --text-secondary: #666666;
+    --text-tertiary: #999999;
+    --primary: #2a82e4;
+    --primary-light: #eaf3fd;
+    --border: #e8e8e8;
+    --danger: #ff4d4f;
+    --success: #52c41a;}
+.app-mine body{font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;}
+.app-mine .page-wrap{max-width: 430px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--bg);
+    position: relative;
+    padding-bottom: 70px;}
+.app-mine /* 状态栏 */
+  .status-bar{display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 16px 4px;
+    font-size: 12px;
+    color: #fff;
+    background: linear-gradient(180deg, #1557b0 0%, #2a82e4 100%);}
+.app-mine .status-right{display: flex; align-items: center; gap: 4px;}
+.app-mine .battery{width: 18px; height: 9px; border: 1px solid #fff; border-radius: 2px; position: relative;}
+.app-mine .battery::after{content: ''; position: absolute; right: -2px; top: 2px; width: 2px; height: 5px; background: #fff; border-radius: 0 1px 1px 0;}
+.app-mine .battery-fill{width: 100%; height: 100%; background: #fff;}
+.app-mine /* 顶部用户信息 */
+  .user-header{background: linear-gradient(180deg, #2a82e4 0%, #4c9aff 100%);
+    padding: 12px 16px 28px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;}
+.app-mine .user-info{display: flex; align-items: center; gap: 12px;}
+.app-mine .avatar-wrap{position: relative; flex-shrink: 0;}
+.app-mine .avatar{width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;}
+.app-mine .avatar-badge{position: absolute;
+    left: 50%;
+    bottom: -4px;
+    transform: translateX(-50%);
+    background: #f5a623;
+    color: #fff;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 8px;
+    white-space: nowrap;
+    border: 1px solid #2a82e4;}
+.app-mine .user-meta{display: flex; flex-direction: column; gap: 6px;}
+.app-mine .store-name{font-size: 18px; font-weight: 700;}
+.app-mine .account{font-size: 13px; color: rgba(255,255,255,.85);}
+.app-mine .service-btn{display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255,255,255,.18);
+    border: none;
+    color: #fff;
+    font-size: 13px;
+    padding: 7px 12px;
+    border-radius: 16px;
+    cursor: pointer;}
+.app-mine .service-btn .icon-headset{width: 14px;
+    height: 14px;
+    border: 2px solid #fff;
+    border-bottom-color: transparent;
+    border-radius: 8px 8px 0 0;
+    position: relative;}
+.app-mine .service-btn .icon-headset::after{content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -5px;
+    transform: translateX(-50%);
+    width: 5px;
+    height: 5px;
+    border-bottom: 2px solid #fff;
+    border-radius: 0 0 3px 3px;}
+.app-mine /* 卡片 */
+  .card{background: var(--white);
+    border-radius: 12px;
+    margin: -14px 12px 12px;
+    padding: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);}
+.app-mine .card:first-of-type{margin-top: -14px;}
+.app-mine .section-header{display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;}
+.app-mine .section-title{font-size: 16px; font-weight: 700; color: var(--text);}
+.app-mine .section-more{font-size: 13px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;}
+.app-mine .section-more::after{content: '';
+    width: 6px;
+    height: 6px;
+    border-right: 1.5px solid var(--text-tertiary);
+    border-top: 1.5px solid var(--text-tertiary);
+    transform: rotate(45deg);
+    margin-left: 2px;}
+.app-mine /* 图标网格 */
+  .icon-grid{display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px 4px;}
+.app-mine .icon-grid.col-2{grid-template-columns: repeat(2, 1fr);}
+.app-mine .icon-grid.col-3{grid-template-columns: repeat(3, 1fr);}
+.app-mine .icon-item{display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;}
+.app-mine .icon-box{width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    position: relative;}
+.app-mine .icon-box.blue{background: var(--primary-light);}
+.app-mine .icon-box.orange{background: #fff5e6;}
+.app-mine .icon-box.green{background: #e6f7ed;}
+.app-mine .icon-box.purple{background: #f0e6ff;}
+.app-mine .icon-box.red{background: #ffeded;}
+.app-mine .icon-box.cyan{background: #e6f7ff;}
+.app-mine .icon-box.gray{background: #f2f2f2;}
+.app-mine .icon-label{font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;}
+.app-mine .badge{position: absolute;
+    top: -5px;
+    right: -8px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 10px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid #fff;}
+.app-mine /* 底部 Tab */
+  .tab-bar{position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    height: 56px;
+    background: #fff;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 50;}
+.app-mine .tab-item{display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-tertiary);
+    font-size: 11px;
+    cursor: pointer;}
+.app-mine .tab-item.active{color: var(--primary);}
+.app-mine .tab-icon{width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;}
+.app-mine .tab-icon.profile{background: var(--primary);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 16px;}
+.app-mine .page-wrap{max-width:none;margin:0;min-height:auto;padding-bottom:16px}
+.app-mine{height:100%}
+  .app-screen{display:block;padding-bottom:64px}
+  .app-placeholder{padding:90px 20px;text-align:center;color:#999;font-size:15px}
+  .app-tabbar{position:absolute;bottom:10px;left:10px;right:10px;height:58px;background:#fff;border-top:1px solid #e8e8e8;display:flex;align-items:center;justify-content:space-around;z-index:20;border-radius:0 0 18px 18px}
+  .app-tab-item{display:flex;flex-direction:column;align-items:center;gap:4px;color:#999;font-size:11px;cursor:pointer}
+  .app-tab-item.active{color:#2a82e4}
+  .app-tab-item .tab-icon{width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:20px}
+  .app-tab-item .tab-icon.profile{background:#2a82e4;color:#fff;border-radius:50%;font-size:16px}
+
+/* ===== APP-扫码出库 ===== */
+.app-scanout .scan-card{text-align:left}
+.app-scanout .step-title{font-size:18px;font-weight:700;color:#111;margin-bottom:4px}
+.app-scanout .step-sub{color:#8c9bae;font-size:13px;margin-bottom:16px}
+.app-scanout .scan-btn{width:100%;height:52px;border-radius:26px;border:none;background:linear-gradient(90deg,#2a82e4,#1e6fd1);color:#fff;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;box-shadow:0 6px 16px rgba(42,130,228,.28)}
+.app-scanout .scan-btn .qr-icon{width:18px;height:18px;position:relative}
+.app-scanout .scan-btn .qr-icon::before{content:"";position:absolute;inset:0;border:2px solid #fff;border-radius:3px}
+.app-scanout .scan-btn .qr-icon::after{content:"";position:absolute;left:7px;top:0;width:2px;height:18px;background:#fff}
+.app-scanout .quota-section{margin-top:14px}
+.app-scanout .quota-section:first-of-type{margin-top:0}
+.app-scanout .quota-name{font-size:16px;font-weight:700;color:#111;margin-bottom:4px}
+.app-scanout .quota-hint{font-size:12px;color:#8c9bae;margin-bottom:14px;line-height:1.4}
+.app-scanout .quota-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 10px}
+.app-scanout .quota-item{text-align:center}
+.app-scanout .quota-value{font-size:22px;font-weight:700;color:#111;line-height:1.2}
+.app-scanout .quota-label{font-size:12px;color:#5d6c7f;margin-top:4px}
+.app-scanout .time-bar{display:flex;align-items:center;justify-content:space-between;background:#f7f9fc;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px;color:#4a586a}
+.app-scanout .time-bar select{border:1px solid #dbe3ed;border-radius:6px;padding:5px 8px;font-size:13px;color:#111;background:#fff}
+.app-scanout .nsa-disabled-tip{display:none;background:#fff2f0;border:1px solid #ffccc7;border-radius:8px;padding:12px 14px;margin-bottom:12px;color:#e5544d;font-size:13px;line-height:1.5}
+.app-scanout .nsa-disabled-tip.show{display:block}
+.app-scanout .rule-divider{display:flex;align-items:center;justify-content:center;margin:20px 0;color:#8c9bae;font-size:13px;gap:10px}
+.app-scanout .rule-divider::before,.app-scanout .rule-divider::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,#e0e4ea 50%,transparent)}
+.app-scanout .rule-card{background:linear-gradient(135deg,#4a90ff,#2a82e4);border-radius:16px;padding:16px;color:#fff;position:relative;overflow:hidden;min-height:100px}
+.app-scanout .rule-card::before{content:"";position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:rgba(255,255,255,.12);border-radius:50%}
+.app-scanout .rule-card-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;position:relative;z-index:1}
+.app-scanout .rule-dot{width:8px;height:8px;background:#fff;border-radius:50%;box-shadow:0 0 0 3px rgba(255,255,255,.25)}
+/* 出库商品类型弹窗 */
+.app-scanout .modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400;display:none;align-items:flex-end;justify-content:center}
+.app-scanout .modal-mask.show{display:flex}
+.app-scanout .type-modal{width:100%;max-width:390px;background:#fff;border-radius:20px 20px 0 0;padding:16px 18px 24px;box-sizing:border-box;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.app-scanout .modal-head{position:relative;display:flex;align-items:center;justify-content:center;height:46px;margin-bottom:4px}
+.app-scanout .modal-title{font-size:17px;font-weight:700;color:#111}
+.app-scanout .modal-close{position:absolute;right:0;top:50%;transform:translateY(-50%);width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#8c9bae;font-size:20px}
+.app-scanout .modal-close::before,.app-scanout .modal-close::after{content:"";position:absolute;width:14px;height:2px;background:#8c9bae;border-radius:1px}
+.app-scanout .modal-close::before{transform:rotate(45deg)}
+.app-scanout .modal-close::after{transform:rotate(-45deg)}
+.app-scanout .type-option{padding:18px 0;border-bottom:1px solid #f0f2f5;display:flex;align-items:flex-start;justify-content:space-between;cursor:pointer}
+.app-scanout .type-option:last-of-type{border-bottom:none}
+.app-scanout .type-info{flex:1;padding-right:16px}
+.app-scanout .type-name{font-size:17px;font-weight:700;color:#111;margin-bottom:8px}
+.app-scanout .type-desc{font-size:13px;color:#8c9bae;line-height:1.55}
+.app-scanout .type-warn{margin-top:10px;background:#fff5f5;border-radius:8px;padding:10px 12px;font-size:13px;color:#e5544d;line-height:1.45}
+.app-scanout .type-radio{width:22px;height:22px;border:2px solid #d0d8e2;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;transition:.15s}
+.app-scanout .type-option.selected .type-radio{border-color:#2a82e4;background:#2a82e4}
+.app-scanout .type-radio::after{content:"";width:10px;height:6px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg);margin-top:-2px;opacity:0}
+.app-scanout .type-option.selected .type-radio::after{opacity:1}
+.app-scanout .modal-confirm{width:100%;height:48px;border:none;border-radius:24px;background:linear-gradient(90deg,#2a82e4,#1e6fd1);color:#fff;font-size:16px;font-weight:600;cursor:pointer;margin-top:14px;box-shadow:0 6px 16px rgba(42,130,228,.28)}
+
+</style>
+</head>
+<body>
+  <!-- 端切换条（常驻顶部左侧） -->
+  <div class="top-dock">
+    <button data-end="pc" class="active" onclick="switchEnd('pc')">PC 后台</button>
+    <button data-end="app" onclick="switchEnd('app')">APP-美赞优购</button>
+  </div>
+<div class="shell" id="pc-view">
+
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-mark">◆</span>美赞优购</div>
+    <div class="nav-group"><p class="nav-label">运营中心</p>
+      <div class="nav-item parent open">
+        <span class="icon">🐮</span>美赞牧场
+      </div>
+      <div class="subnav">
+        <div class="nav-item">养牛活动</div>
+        <div class="nav-item">礼品管理</div>
+        <div class="nav-item">活动任务</div>
+        <div class="nav-item">题库</div>
+        <div class="nav-item">KV图</div>
+        <div class="nav-item">视频库</div>
+        <div class="nav-item">兑换订单</div>
+        <div class="nav-item active">扫码配置</div>
+        <div class="nav-item">扫码出库</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 主区 -->
+  <main class="main">
+    <header class="topbar"><span>美赞优购</span><span class="crumb">/ 运营中心 / 美赞牧场 / 扫码配置</span></header>
+
+    <!-- 三 Tab（商品配置 / 返利配置 / NUA配额） -->
+    <div class="tabs">
+      <span id="tab-product" onclick="switchModule('product')">商品配置</span>
+      <span id="tab-rebate" onclick="switchModule('rebate')">返利配置</span>
+      <span id="tab-quota" class="current" onclick="switchModule('quota')">NUA配额</span>
+      <span id="tab-nsa" onclick="switchModule('nsa')">NSA配额</span>
+    </div>
+
+    <!-- 面包屑 -->
+    <div class="breadcrumb">扫码配置 / <span id="bread-cur">NUA配额</span></div>
+
+    <div class="content">
+
+      <!-- ============ 返利配置：列表页 ============ -->
+      <section id="list-page" class="page">
+        <div class="card">
+          <div class="filters">
+            <span class="lbl">名称</span><input class="field" value="请输入名称">
+            <span class="lbl">状态</span><div class="select">请选择状态</div>
+            <span class="lbl">活动ID</span><input class="field w-sm" value="请输入活动ID">
+            <span class="lbl">活动名称</span><input class="field" value="请输入活动名称">
+            <span class="lbl">返利类型</span><div class="select">请选择返利类型</div>
+            <button class="btn primary small" onclick="toast('搜索成功')">搜索</button>
+            <button class="btn small" onclick="toast('已重置')">重置</button>
+          </div>
+          <div class="actions">
+            <span style="color:#8c9bae;font-size:13px">共 1129 条</span>
+            <button class="btn primary" onclick="showPage('edit', 'add')">＋ 新建返利配置</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th class="num">序号</th><th>名称</th><th>活动ID</th><th>活动名称</th><th>活动状态</th>
+                <th>返利类型</th><th>返利开始时间</th><th>返利结束时间</th><th>创建时间</th><th>更新时间</th><th>状态</th><th>操作</th>
+              </tr></thead>
+              <tbody>
+                <tr>
+                  <td class="num">001</td><td><a class="link" onclick="showPage('detail')">名称001</a></td>
+                  <td>001</td><td>活动名称001</td><td>待开始</td><td>首单返利</td>
+                  <td>2021-04-21 00:00:00</td><td>2021-04-21 00:00:00</td>
+                  <td class="td-2line">账号名称<br>2021-04-21 00:00:00</td>
+                  <td class="td-2line">账号名称<br>2021-04-21 00:00:00</td>
+                  <td><span class="status"><i class="dot"></i>启用</span></td>
+                  <td><a class="link" onclick="showPage('edit', 'edit')">编辑</a></td>
+                </tr>
+                <tr>
+                  <td class="num">002</td><td><a class="link" onclick="showPage('detail')">名称002</a></td>
+                  <td>002</td><td>活动名称002</td><td>进行中</td><td>复购返利</td>
+                  <td>2021-04-21 00:00:00</td><td>2021-04-21 00:00:00</td>
+                  <td class="td-2line">账号名称<br>2021-04-21 00:00:00</td>
+                  <td class="td-2line">账号名称<br>2021-04-21 00:00:00</td>
+                  <td><span class="status"><i class="dot"></i>启用</span></td>
+                  <td><a class="link" onclick="showPage('edit', 'edit')">编辑</a></td>
+                </tr>
+                <tr>
+                  <td class="num">003</td><td><a class="link" onclick="showPage('detail')">名称003</a></td>
+                  <td>003</td><td>活动名称003</td><td>已暂停</td><td>首单返利</td>
+                  <td>2021-04-21 00:00:00</td><td>2021-04-21 00:00:00</td>
+                  <td class="td-2line">账号名称<br>2021-04-21 00:00:00</td>
+                  <td class="td-2line">账号名称<br>2021-04-21 00:00:00</td>
+                  <td><span class="status"><i class="dot off"></i>禁用</span></td>
+                  <td><a class="link" onclick="showPage('edit', 'edit')">编辑</a></td>
+                </tr>
+                <tr>
+                  <td class="num">004</td><td><a class="link" onclick="showPage('detail')">名称004</a></td>
+                  <td>004</td><td>活动名称004</td><td>已结束</td><td>复购返利</td>
+                  <td>2021-04-21 00:00:00</td><td>2021-04-21 00:00:00</td>
+                  <td class="td-2line">账号名称<br>2021-04-21 00:00:00</td>
+                  <td class="td-2line">账号名称<br>2021-04-21 00:00:00</td>
+                  <td><span class="status"><i class="dot off"></i>禁用</span></td>
+                  <td><a class="link" onclick="showPage('edit', 'edit')">编辑</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="actions" style="justify-content:flex-end;margin-top:14px;margin-bottom:0;gap:8px">
+            <span style="font-size:13px;color:#5d6c7f">共 1129 条 &nbsp; &lt; <span style="color:var(--blue);font-weight:700">922</span> &gt;&nbsp; 跳转到 <input class="field" style="width:46px;height:28px"> 页</span>
+            <button class="btn small">GO</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 返利配置：新增/编辑页 ============ -->
+      <section id="edit-page" class="page">
+        <div class="card">
+          <div class="form">
+            <!-- 名称 -->
+            <div class="form-row"><label class="required">名称</label>
+              <div class="form-body"><input class="input-lg w" id="f_name" placeholder="请填写名称，30字符内"></div>
+            </div>
+            <!-- 所属活动 -->
+            <div class="form-row"><label class="required">所属活动</label>
+              <div class="form-body"><select class="input-lg w" id="f_activity" style="color:#9ca8b7"><option value="">请下拉选择活动</option><option>26年养牛活动</option><option>5月返米活动</option></select></div>
+            </div>
+            <!-- 返利时间 -->
+            <div class="form-row"><label class="required">返利时间</label>
+              <div class="form-body"><input class="input-lg w-lg" id="f_time" placeholder="开始时间 ～ 结束时间"></div>
+            </div>
+            <!-- 返利类型 -->
+            <div class="form-row"><label class="required">返利类型</label>
+              <div class="form-body"><div class="radios">
+                <label><input class="radio" type="radio" name="rt" id="rt_first" checked>首单返利</label>
+                <label><input class="radio" type="radio" name="rt" id="rt_repurchase">复购返利</label>
+              </div></div>
+            </div>
+            <!-- 返利商品（标题 + 获取出库商品按钮同行） -->
+            <div class="form-row"><label class="required">返利商品</label>
+              <div class="form-body"><div class="btn-row">
+                <button class="btn small" onclick="toast('已获取出库商品')">获取出库商品</button>
+              </div></div>
+            </div>
+            <!-- 返利商品子表格 -->
+            <div class="form-row" style="margin-top:0"><label style="visibility:hidden">占位</label>
+              <div class="form-body">
+                <div class="table-wrap">
+                  <table style="min-width:1080px">
+                    <thead><tr>
+                      <th>操作</th><th>名称</th><th>分销商品 ID</th><th>分销商品名称</th><th>规格类型</th><th>出库数量</th>
+                      <th><span style="color:var(--danger)">*</span>首单返利金额（按单）/复购返利金额（按单）</th>
+                    </tr></thead>
+                    <tbody id="goods-body">
+                      <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>名称0001</td><td>001</td><td>分销名称001</td><td>大罐</td><td>2</td><td><input class="cell-input" placeholder="请输入返利金额"></td></tr>
+                      <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>名称0002</td><td>002</td><td>分销名称002</td><td>小罐</td><td>1</td><td><input class="cell-input" placeholder="请输入返利金额"></td></tr>
+                      <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>名称0003</td><td>003</td><td>分销名称003</td><td>小罐</td><td>2</td><td><input class="cell-input" placeholder="请输入返利金额"></td></tr>
+                      <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>名称0004</td><td>004</td><td>分销名称004</td><td>大罐</td><td>1</td><td><input class="cell-input" placeholder="请输入返利金额"></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- 请选择门店 -->
+            <div class="form-row"><label class="required">请选择门店</label>
+              <div class="form-body"><div class="btn-row">
+                <button class="btn small" onclick="toast('请选择门店')">选择门店</button>
+                <button class="btn small" onclick="toast('批量导入')">批量导入</button>
+                <button class="btn small" onclick="toast('下载模版')">下载模版</button>
+              </div></div>
+            </div>
+
+            <!-- 批量设置（NSA 输入已隐藏） -->
+            <div class="form-row"><label>批量设置</label>
+              <div class="form-body"><div class="btn-row">
+                <input class="input-lg" style="width:200px;height:32px" placeholder="请输入NUA返利配额">
+                <input class="input-lg nsa-hide" style="width:200px;height:32px" placeholder="请输入NSA返利配额">
+                <button class="btn small primary" onclick="toast('已批量填入')">批量填入</button>
+              </div></div>
+            </div>
+
+            <!-- 批量搜索 -->
+            <div class="form-row"><label>批量搜索</label>
+              <div class="form-body"><div class="btn-row">
+                <input class="input-lg" style="width:320px;height:32px" placeholder="请输入门店ID，支持批量搜索，英文逗号隔开">
+                <button class="btn small primary" onclick="toast('搜索成功')">批量搜索</button>
+                <button class="btn small" onclick="toast('已重置')">重置</button>
+              </div>
+              <div class="hint">合计XXX家门店，搜索或导出查看全部数据</div></div>
+            </div>
+
+            <!-- 门店子表格（NSA 列已隐藏） -->
+            <div class="form-row" style="margin-top:0"><label style="visibility:hidden">占位</label>
+              <div class="form-body">
+                <div class="table-wrap">
+                  <table style="min-width:900px">
+                    <thead><tr>
+                      <th>操作</th><th>门店名称</th><th>门店ID</th><th>门店NUA返利配额（按单）</th>
+                      <th class="nsa-hide">门店NSA返利配额（按单）</th>
+                    </tr></thead>
+                    <tbody>
+                      <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>门店名称门店名称门店名称</td><td>11111</td><td><input class="cell-input" placeholder="请输入NUA返利配额，0表示无配额"></td><td class="nsa-hide"><input class="cell-input" placeholder="请输入NSA返利配额，0表示无配额"></td></tr>
+                      <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>门店名称门店名称门店名称</td><td>11111</td><td><input class="cell-input" placeholder="请输入NUA返利配额，0表示无配额"></td><td class="nsa-hide"><input class="cell-input" placeholder="请输入NSA返利配额，0表示无配额"></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="sticky-actions">
+              <button class="btn primary big" onclick="saveEdit()">保存</button>
+              <button class="btn big" onclick="showPage('list')">取消</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 返利配置：详情页 ============ -->
+      <section id="detail-page" class="page">
+        <div class="card">
+          <div class="detail-head">
+            <button class="btn small" onclick="showPage('list')">← 返回列表</button>
+            <div class="card-title">基础信息</div>
+          </div>
+          <div class="detail-grid">
+            <span><b>活动ID：</b>123</span>
+            <span><b>名称：</b>活动名称001</span>
+            <span><b>序号：</b>001</span>
+            <span><b>所属活动：</b>26年养牛活动</span>
+            <span><b>状态：</b>待开始</span>
+            <span><b>返利时间：</b>2026-04-21 00:00:00-2026-05-21 00:00:00</span>
+            <span><b>返利类型：</b>首单返利</span>
+            <span><b>NUA返利配额：</b>110</span>
+            <span><b>NUA返利已用配额：</b>10</span>
+            <span><b>NUA返利剩余配额：</b>100</span>
+            <span class="nsa-hide"><b>NSA返利配额：</b>110</span>
+            <span class="nsa-hide"><b>NSA返利已用配额：</b>10</span>
+            <span class="nsa-hide"><b>NSA返利剩余配额：</b>100</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">返利商品</div>
+          <div class="table-wrap">
+            <table style="min-width:900px">
+              <thead><tr><th>名称</th><th>分销商品 ID</th><th>分销商品名称</th><th>规格类型</th><th>出库数量</th><th>首单返利金额（按单）</th></tr></thead>
+              <tbody>
+                <tr><td>名称001</td><td>001</td><td>分销名称001</td><td>大罐</td><td>2</td><td>10</td></tr>
+                <tr><td>名称002</td><td>002</td><td>分销名称002</td><td>小罐</td><td>1</td><td>0</td></tr>
+                <tr><td>名称003</td><td>003</td><td>分销名称003</td><td>小罐</td><td>3</td><td>20</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">关联门店</div>
+          <div class="btn-row" style="margin-bottom:10px">
+            <span class="lbl" style="color:#4a586a">批量搜索：</span>
+            <input class="input-lg" style="width:320px;height:32px" placeholder="请输入门店ID，支持批量搜索，英文逗号隔开">
+            <button class="btn small primary" onclick="toast('搜索成功')">批量搜索</button>
+            <button class="btn small" onclick="toast('已重置')">重置</button>
+            <button class="btn small" onclick="toast('已导出')">导出</button>
+          </div>
+          <div class="hint">合计XXX家门店，搜索和导出查看全部门店</div>
+          <div class="table-wrap">
+            <table style="min-width:1100px">
+              <thead><tr>
+                <th>门店ID</th><th>门店名称</th><th>门店NUA返利配额</th><th>门店NUA返利已用配额</th><th>门店NUA返利剩余配额</th>
+                <th class="nsa-hide">门店NSA返利配额</th><th class="nsa-hide">门店NSA返利已用配额</th><th class="nsa-hide">门店NSA返利剩余配额</th>
+              </tr></thead>
+              <tbody>
+                <tr><td>11111</td><td>门店名称门店名称门店名称</td><td>12</td><td>5</td><td>7</td><td class="nsa-hide">12</td><td class="nsa-hide">2</td><td class="nsa-hide">10</td></tr>
+                <tr><td>—</td><td>—</td><td>23</td><td>11</td><td>12</td><td class="nsa-hide">18</td><td class="nsa-hide">6</td><td class="nsa-hide">12</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="hint" style="margin-top:10px">
+            <span>NUA返利配额：110</span>&nbsp;&nbsp;
+            <span>NUA返利已用配额：10</span>&nbsp;&nbsp;
+            <span>NUA返利剩余配额：100</span>&nbsp;&nbsp;
+            <span class="nsa-hide">NSA返利配额：110</span>
+            <span class="nsa-hide">NSA返利已用配额：10</span>
+            <span class="nsa-hide">NSA返利剩余配额：100</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">操作日志</div>
+          <div class="table-wrap">
+            <table style="min-width:700px">
+              <thead><tr><th>操作人</th><th>操作时间</th><th>操作内容</th></tr></thead>
+              <tbody>
+                <tr><td>操作账号的名称</td><td>1992-11-29 00:00:00</td><td>新建活动</td></tr>
+                <tr><td></td><td>1992-11-29 00:00:00</td><td>修改活动名称由【x x x】改为【x x x x】</td></tr>
+                <tr><td></td><td>1992-11-29 00:00:00</td><td>修改活动开始时间由【x x x】改为【x x x x】</td></tr>
+                <tr><td></td><td>1992-11-29 00:00:00</td><td>修改活动优惠【x x x】改为【x x x x】</td></tr>
+                <tr><td></td><td>1992-11-29 00:00:00</td><td>修改活动状态【x x x】改为【x x x x】</td></tr>
+                <tr><td></td><td>1992-11-29 00:00:00</td><td>修改门店规则【x x x】改为【x x x x】</td></tr>
+                <tr><td></td><td>1992-11-29 00:00:00</td><td>修改商品规则【x x x】改为【x x x x】</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ NUA配额：列表页 ============ -->
+      <section id="quota-list-page" class="page active">
+        <div class="card">
+          <div class="filters">
+            <span class="lbl">名称</span><input class="field" value="请输入名称">
+            <span class="lbl">状态</span><div class="select">全部</div>
+            <span class="lbl">活动ID</span><input class="field w-sm" value="请输入活动ID">
+            <span class="lbl">活动名称</span><input class="field" value="请输入活动名称">
+            <button class="btn primary small" onclick="toast('搜索成功')">搜索</button>
+            <button class="btn small" onclick="toast('已重置')">重置</button>
+          </div>
+          <div class="actions">
+            <span style="color:#8c9bae;font-size:13px">共 2 条</span>
+            <button class="btn primary" onclick="showPage('quota-edit', 'add')">＋ 新增NUA配额</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th class="num">序号</th><th>名称</th><th>活动ID</th><th>活动名称</th><th>活动状态</th>
+                <th>配额开始时间</th><th>配额结束时间</th><th>创建时间</th><th>更新时间</th><th>状态</th><th>操作</th>
+              </tr></thead>
+              <tbody>
+                <tr>
+                  <td class="num">1</td><td><a class="link" onclick="showPage('quota-detail')">8月扫码限额</a></td>
+                  <td>190773528546232305</td><td>美赞牧场25年招新活动</td><td>进行中</td>
+                  <td>2026-08-07 09:40:00</td><td>2026-08-31 23:59:59</td>
+                  <td class="td-2line">账号名称<br>2026-08-07 08:54:15</td>
+                  <td class="td-2line">账号名称<br>2026-08-18 16:16:55</td>
+                  <td><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></td>
+                  <td><a class="link" onclick="showPage('quota-edit', 'edit')">编辑</a></td>
+                </tr>
+                <tr>
+                  <td class="num">2</td><td><a class="link" onclick="showPage('quota-detail')">7月扫码限额</a></td>
+                  <td>190773528546232305</td><td>美赞牧场25年招新活动</td><td>进行中</td>
+                  <td>2026-08-07 09:40:00</td><td>2026-08-31 23:59:59</td>
+                  <td class="td-2line">账号名称<br>2026-07-22 18:59:44</td>
+                  <td class="td-2line">账号名称<br>2026-07-31 15:14:43</td>
+                  <td><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></td>
+                  <td><a class="link" onclick="showPage('quota-edit', 'edit')">编辑</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="actions" style="justify-content:flex-end;margin-top:14px;margin-bottom:0;gap:8px">
+            <span style="font-size:13px;color:#5d6c7f">共 2 条 &nbsp; &lt; <span style="color:var(--blue);font-weight:700">1</span> &gt;&nbsp; 跳转到 <input class="field" style="width:46px;height:28px"> 页</span>
+            <button class="btn small">GO</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ NUA配额：新增/编辑页 ============ -->
+      <section id="quota-edit-page" class="page">
+        <div class="card">
+          <div class="card-title" id="quota-edit-title">新增NUA配额</div>
+          <div class="form">
+            <!-- 名称 -->
+            <div class="form-row"><label class="required">名称</label>
+              <div class="form-body"><input class="input-lg w" id="qf_name" placeholder="请填写名称，30字符内"></div>
+            </div>
+            <!-- 所属活动 -->
+            <div class="form-row"><label class="required">所属活动</label>
+              <div class="form-body"><select class="input-lg w" id="qf_activity" style="color:#9ca8b7"><option value="">请下拉选择活动</option><option>美赞牧场25年招新活动</option></select></div>
+            </div>
+            <!-- 出库时间 -->
+            <div class="form-row"><label class="required">出库时间</label>
+              <div class="form-body"><input class="input-lg w-lg" id="qf_time" placeholder="开始时间 ～ 结束时间"></div>
+            </div>
+            <!-- 出库商品（标题 + 获取出库商品按钮同行） -->
+            <div class="form-row"><label class="required">出库商品</label>
+              <div class="form-body"><div class="btn-row">
+                <button class="btn small" onclick="toast('已获取出库商品')">获取出库商品</button>
+              </div></div>
+            </div>
+            <!-- 出库商品子表格 -->
+            <div class="form-row" style="margin-top:0"><label style="visibility:hidden">占位</label>
+              <div class="form-body">
+                <div class="table-wrap">
+                  <table style="min-width:900px">
+                    <thead><tr>
+                      <th>操作</th><th>名称</th><th>分销商品ID</th><th>分销商品名称</th><th>规格类型</th><th>出库数量</th>
+                    </tr></thead>
+                    <tbody id="quota-goods-body">
+                      <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>亲舒1-370g礼品兑换</td><td>320</td><td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉850g</td><td>大罐</td><td>1</td></tr>
+                      <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>蓝臻-S3 300G</td><td>326</td><td>美赞臣蓝臻幼儿配方奶粉（12-36月龄,3段）300G</td><td>小罐</td><td>1</td></tr>
+                      <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>蓝臻-S2 300G</td><td>325</td><td>美赞臣蓝臻较大婴儿配方奶粉（6-12月龄,2段）300G</td><td>小罐</td><td>1</td></tr>
+                      <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>蓝臻-S1 300G</td><td>324</td><td>美赞臣蓝臻婴儿配方奶粉（0-6月龄,1段）300G</td><td>小罐</td><td>1</td></tr>
+                      <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>亲舒S1-370g</td><td>301</td><td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉370g</td><td>小罐</td><td>1</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- 选择门店 -->
+            <div class="form-row"><label class="required">选择门店</label>
+              <div class="form-body"><div class="btn-row">
+                <button class="btn small" onclick="toast('请选择门店')">选择门店</button>
+                <button class="btn small" onclick="toast('下载模板')">下载模板</button>
+                <button class="btn small" onclick="toast('批量导入')">批量导入</button>
+              </div></div>
+            </div>
+
+            <!-- 批量设置 -->
+            <div class="form-row"><label>批量设置</label>
+              <div class="form-body"><div class="btn-row">
+                <input class="input-lg" style="width:200px;height:32px" placeholder="请输入门店NUA出库配额">
+                <button class="btn small primary" onclick="toast('已批量填入')">批量填入</button>
+              </div></div>
+            </div>
+
+            <!-- 批量搜索 -->
+            <div class="form-row"><label>批量搜索</label>
+              <div class="form-body"><div class="btn-row">
+                <input class="input-lg" style="width:320px;height:32px" placeholder="请输入门店ID，支持批量搜索，英文逗号隔开">
+                <button class="btn small primary" onclick="toast('搜索成功')">批量搜索</button>
+                <button class="btn small" onclick="toast('已重置')">重置</button>
+                <button class="btn small" onclick="toast('已导出')">导出</button>
+              </div>
+              <div class="hint">合计XXX家门店，搜索和导出查看全部数据</div></div>
+            </div>
+
+            <!-- 门店子表格 -->
+            <div class="form-row" style="margin-top:0"><label style="visibility:hidden">占位</label>
+              <div class="form-body">
+                <div class="table-wrap">
+                  <table style="min-width:900px">
+                    <thead><tr>
+                      <th>门店ID</th><th>门店名称</th><th>门店NUA出库配额（按单）</th><th>操作</th>
+                    </tr></thead>
+                    <tbody id="quota-store-body">
+                      <tr><td>9715</td><td>合肥市包河区爱婴坊</td><td><input class="cell-input" value="2" placeholder="请输入门店NUA出库配额"></td><td><a class="link" style="color:var(--danger)">删除</a></td></tr>
+                      <tr><td>14011</td><td>润心宝贝</td><td><input class="cell-input" value="2" placeholder="请输入门店NUA出库配额"></td><td><a class="link" style="color:var(--danger)">删除</a></td></tr>
+                      <tr><td>18579</td><td>差不多的母婴喂养馆</td><td><input class="cell-input" value="2" placeholder="请输入门店NUA出库配额"></td><td><a class="link" style="color:var(--danger)">删除</a></td></tr>
+                      <tr><td>5229</td><td>福州市鼓楼区杨桥母婴店</td><td><input class="cell-input" value="2" placeholder="请输入门店NUA出库配额"></td><td><a class="link" style="color:var(--danger)">删除</a></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="sticky-actions">
+              <button class="btn primary big" onclick="saveQuotaEdit()">保存</button>
+              <button class="btn big" onclick="showPage('quota-list')">取消</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ NUA配额：详情页 ============ -->
+      <section id="quota-detail-page" class="page">
+        <div class="card">
+          <div class="detail-head">
+            <button class="btn small" onclick="showPage('quota-list')">← 返回列表</button>
+            <div class="card-title">美赞牧场25年招新活动</div>
+            <span class="badge">启用</span>
+          </div>
+          <div class="detail-grid">
+            <span><b>序号：</b>1</span>
+            <span><b>名称：</b>美赞牧场25年招新活动</span>
+            <span><b>状态：</b>启用</span>
+            <span><b>所属活动：</b>美赞牧场25年招新活动</span>
+            <span><b>活动ID：</b>190773528546232305</span>
+            <span><b>出库时间：</b>2026-08-07 09:40:00 ~ 2026-08-31 23:59:59</span>
+            <span><b>NUA出库配额：</b>375</span>
+            <span><b>NUA出库已用配额：</b>59</span>
+            <span><b>NUA出库剩余配额：</b>316</span>
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="inner-tabs">
+            <span>出库商品</span>
+            <span class="active">关联门店</span>
+            <span>操作日志</span>
+          </div>
+
+          <div class="btn-row" style="margin-bottom:10px">
+            <span class="lbl" style="color:#4a586a">批量搜索：</span>
+            <input class="input-lg" style="width:320px;height:32px" placeholder="请输入门店ID，支持批量搜索，英文逗号隔开">
+            <button class="btn small primary" onclick="toast('搜索成功')">批量搜索</button>
+            <button class="btn small" onclick="toast('已重置')">重置</button>
+            <button class="btn small" onclick="toast('已导出')">导出</button>
+          </div>
+          <div class="hint">合计2083家门店，搜索和导出查看全部数据</div>
+          <div class="table-wrap">
+            <table style="min-width:1200px">
+              <thead><tr>
+                <th>门店ID</th><th>门店名称</th><th>门店NUA出库配额</th><th>门店NUA出库已用配额</th><th>门店NUA出库剩余配额</th>
+              </tr></thead>
+              <tbody>
+                <tr><td>9715</td><td>合肥市包河区爱婴坊</td><td>2</td><td>0</td><td>2</td></tr>
+                <tr><td>14011</td><td>润心宝贝</td><td>2</td><td>0</td><td>2</td></tr>
+                <tr><td>18579</td><td>差不多的母婴喂养馆</td><td>2</td><td>0</td><td>2</td></tr>
+                <tr><td>5229</td><td>福州市鼓楼区杨桥母婴店</td><td>2</td><td>0</td><td>2</td></tr>
+                <tr><td>6424</td><td>漳州龙文区爱婴园儿童用品店</td><td>3</td><td>0</td><td>3</td></tr>
+                <tr><td>22220</td><td>圆圆贝儿童店</td><td>3</td><td>0</td><td>3</td></tr>
+                <tr><td>7608</td><td>厦门多年商贸有限公司</td><td>2</td><td>0</td><td>2</td></tr>
+                <tr><td>20744</td><td>莆田爱心宝宝母婴店</td><td>2</td><td>0</td><td>2</td></tr>
+                <tr><td>1691</td><td>厦门市思明区欧装母婴用品店</td><td>2</td><td>0</td><td>2</td></tr>
+                <tr><td>18025</td><td>蓝臻灵峰江田店</td><td>2</td><td>0</td><td>2</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ NSA配额：配额规则列表页 ============ -->
+      <section id="nsa-rules-page" class="page">
+        <div class="card">
+          <div class="inner-tabs">
+            <span class="active" onclick="showNsaTab('rules')">配额规则</span>
+            <span onclick="showNsaTab('report')">配额报表</span>
+          </div>
+          <div class="filters">
+            <span class="lbl">规则名称</span><input class="field" value="请输入规则名称">
+            <span class="lbl">活动ID</span><input class="field" value="请输入活动ID">
+            <span class="lbl">活动名称</span><div class="select">请选择活动名称</div>
+            <span class="lbl">统计时间</span><input class="field" value="开始时间 ~ 结束时间">
+            <button class="btn primary small" onclick="toast('搜索成功')">搜索</button>
+            <button class="btn small" onclick="toast('已重置')">重置</button>
+          </div>
+          <div class="actions">
+            <span style="color:#8c9bae;font-size:13px">共 2 条</span>
+            <button class="btn primary" onclick="showPage('nsa-edit', 'add')">＋ 新增NSA配额规则</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th class="num">序号</th><th>规则名称</th><th>所属活动</th><th>统计范围</th><th>统计时间</th>
+                <th>出库时间</th><th>创建时间</th><th>更新时间</th><th>状态</th><th>操作</th>
+              </tr></thead>
+              <tbody>
+                <tr>
+                  <td class="num">1</td><td><a class="link" onclick="showPage('nsa-detail')">8月NSA配额规则</a></td>
+                  <td>美赞牧场25年招新活动</td><td>分销订单、积分订单</td>
+                  <td>2026-08-01 00:00:00 ~ 2026-08-31 23:59:59</td>
+                  <td>2026-08-07 09:40:00 ~ 2026-08-31 23:59:59</td>
+                  <td class="td-2line">账号名称<br>2026-08-07 08:54:15</td>
+                  <td class="td-2line">账号名称<br>2026-08-18 16:16:55</td>
+                  <td><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></td>
+                  <td><a class="link" onclick="showPage('nsa-edit', 'edit')">编辑</a></td>
+                </tr>
+                <tr>
+                  <td class="num">2</td><td><a class="link" onclick="showPage('nsa-detail')">7月NSA配额规则</a></td>
+                  <td>美赞牧场25年招新活动</td><td>分销订单</td>
+                  <td>2026-07-01 00:00:00 ~ 2026-07-31 23:59:59</td>
+                  <td>2026-07-05 09:40:00 ~ 2026-07-31 23:59:59</td>
+                  <td class="td-2line">账号名称<br>2026-07-01 18:59:44</td>
+                  <td class="td-2line">账号名称<br>2026-07-15 15:14:43</td>
+                  <td><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></td>
+                  <td><a class="link" onclick="showPage('nsa-edit', 'edit')">编辑</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="actions" style="justify-content:flex-end;margin-top:14px;margin-bottom:0;gap:8px">
+            <span style="font-size:13px;color:#5d6c7f">共 2 条 &nbsp; &lt; <span style="color:var(--blue);font-weight:700">1</span> &gt;&nbsp; 跳转到 <input class="field" style="width:46px;height:28px"> 页</span>
+            <button class="btn small">GO</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ NSA配额：配额报表列表页 ============ -->
+      <section id="nsa-report-page" class="page">
+        <div class="card">
+          <div class="inner-tabs">
+            <span onclick="showNsaTab('rules')">配额规则</span>
+            <span class="active" onclick="showNsaTab('report')">配额报表</span>
+          </div>
+          <div class="filters">
+            <span class="lbl">规则名称</span><input class="field" value="请输入规则名称">
+            <span class="lbl">活动ID</span><input class="field" value="请输入活动ID">
+            <span class="lbl">活动名称</span><div class="select" style="width:190px">请选择活动名称</div>
+            <button class="btn primary small" onclick="toast('搜索成功')">搜索</button>
+            <button class="btn small" onclick="toast('已重置')">重置</button>
+          </div>
+          <div class="actions">
+            <span style="color:#8c9bae;font-size:13px">共 2 条</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th class="num">序号</th><th>规则名称</th><th>活动ID</th><th>活动名称</th><th>活动状态</th>
+                <th>统计时间</th><th>出库时间</th><th>创建时间</th><th>更新时间</th><th>操作</th>
+              </tr></thead>
+              <tbody>
+                <tr>
+                  <td class="num">1</td><td><a class="link" onclick="showPage('nsa-report-detail')">8月NSA配额规则</a></td>
+                  <td>190773528546232305</td><td>美赞牧场25年招新活动</td><td>进行中</td>
+                  <td>2026-08-01 00:00:00 ~ 2026-08-31 23:59:59</td>
+                  <td>2026-08-07 09:40:00 ~ 2026-08-31 23:59:59</td>
+                  <td class="td-2line">账号名称<br>2026-08-07 08:54:15</td>
+                  <td class="td-2line">账号名称<br>2026-08-18 16:16:55</td>
+                  <td><a class="link" onclick="showPage('nsa-report-edit')">编辑</a></td>
+                </tr>
+                <tr>
+                  <td class="num">2</td><td><a class="link" onclick="showPage('nsa-report-detail')">7月NSA配额规则</a></td>
+                  <td>190773528546232305</td><td>美赞牧场25年招新活动</td><td>进行中</td>
+                  <td>2026-07-01 00:00:00 ~ 2026-07-31 23:59:59</td>
+                  <td>2026-07-05 09:40:00 ~ 2026-07-31 23:59:59</td>
+                  <td class="td-2line">账号名称<br>2026-07-01 18:59:44</td>
+                  <td class="td-2line">账号名称<br>2026-07-15 15:14:43</td>
+                  <td><a class="link" onclick="showPage('nsa-report-edit')">编辑</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="actions" style="justify-content:flex-end;margin-top:14px;margin-bottom:0;gap:8px">
+            <span style="font-size:13px;color:#5d6c7f">共 2 条 &nbsp; &lt; <span style="color:var(--blue);font-weight:700">1</span> &gt;&nbsp; 跳转到 <input class="field" style="width:46px;height:28px"> 页</span>
+            <button class="btn small">GO</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ NSA配额：配额报表编辑页（调整门店数量） ============ -->
+      <section id="nsa-report-edit-page" class="page">
+        <div class="card">
+          <div class="card-title">编辑配额报表</div>
+          <div class="detail-grid">
+            <span><b>规则名称：</b>8月NSA配额规则</span>
+            <span><b>活动ID：</b>190773528546232305</span>
+            <span><b>活动名称：</b>美赞牧场25年招新活动</span>
+            <span><b>活动状态：</b>进行中</span>
+            <span><b>统计时间：</b>2026-08-01 00:00:00 ~ 2026-08-31 23:59:59</span>
+            <span><b>出库时间：</b>2026-08-07 09:40:00 ~ 2026-08-31 23:59:59</span>
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="btn-row" style="margin-bottom:10px;justify-content:space-between">
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <span class="lbl" style="color:#4a586a">批量设置：</span>
+              <input class="input-lg" id="nsa-report-batch" style="width:220px;height:32px" placeholder="请输入调整数量（可正可负）">
+              <button class="btn small primary" onclick="batchFillNsaReport()">批量填入</button>
+              <span class="hint" style="margin:0">调整数量为 0 表示不调整</span>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center">
+              <button class="btn small" onclick="downloadNsaReportTemplate()">下载模板</button>
+              <button class="btn small primary" onclick="document.getElementById('nsa-report-import').click()">批量导入</button>
+              <input type="file" id="nsa-report-import" style="display:none" accept=".csv" onchange="importNsaReport(this)">
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table style="min-width:1200px">
+              <thead><tr>
+                <th>门店ID</th><th>门店名称</th><th>门店类型</th><th>分销订单数量</th><th>积分订单数量</th>
+                <th>调整数量</th><th>合计数量</th><th>已用数量</th><th>剩余数量</th><th>创建时间</th><th>更新时间</th>
+              </tr></thead>
+              <tbody id="nsa-report-edit-body">
+                <tr><td>9715</td><td>合肥市包河区爱婴坊</td><td>分店</td><td>3</td><td>2</td><td><input class="cell-input" value="0" style="min-width:80px" onchange="recalcNsaReportRow(this)"></td><td class="report-sum">5</td><td>0</td><td class="report-left">5</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
+                <tr><td>14011</td><td>润心宝贝</td><td>分店</td><td>2</td><td>1</td><td><input class="cell-input" value="0" style="min-width:80px" onchange="recalcNsaReportRow(this)"></td><td class="report-sum">3</td><td>1</td><td class="report-left">2</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
+                <tr><td>18579</td><td>差不多的母婴喂养馆</td><td>分店</td><td>1</td><td>0</td><td><input class="cell-input" value="0" style="min-width:80px" onchange="recalcNsaReportRow(this)"></td><td class="report-sum">1</td><td>0</td><td class="report-left">1</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
+                <tr><td>5229</td><td>福州市鼓楼区杨桥母婴店</td><td>总店</td><td>4</td><td>0</td><td><input class="cell-input" value="0" style="min-width:80px" onchange="recalcNsaReportRow(this)"></td><td class="report-sum">4</td><td>2</td><td class="report-left">2</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="actions" style="justify-content:flex-end;margin-top:14px;margin-bottom:0;gap:8px">
+            <span style="font-size:13px;color:#5d6c7f">共 2083 条 &nbsp; &lt; <span style="color:var(--blue);font-weight:700">1</span> &gt;&nbsp; 跳转到 <input class="field" style="width:46px;height:28px"> 页</span>
+            <button class="btn small">GO</button>
+          </div>
+        </div>
+
+        <div class="sticky-actions">
+          <button class="btn primary big" onclick="saveNsaReportEdit()">保存</button>
+          <button class="btn big" onclick="showPage('nsa-report')">取消</button>
+        </div>
+      </section>
+
+      <!-- ============ NSA配额：配额报表详情页（门店明细） ============ -->
+      <section id="nsa-report-detail-page" class="page">
+        <div class="card">
+          <div class="detail-head">
+            <button class="btn small" onclick="showPage('nsa-report')">← 返回列表</button>
+            <div class="card-title">8月NSA配额规则</div>
+            <span class="badge">启用</span>
+          </div>
+          <div class="detail-grid">
+            <span><b>规则名称：</b>8月NSA配额规则</span>
+            <span><b>活动ID：</b>190773528546232305</span>
+            <span><b>活动名称：</b>美赞牧场25年招新活动</span>
+            <span><b>活动状态：</b>进行中</span>
+            <span><b>统计时间：</b>2026-08-01 00:00:00 ~ 2026-08-31 23:59:59</span>
+            <span><b>出库时间：</b>2026-08-07 09:40:00 ~ 2026-08-31 23:59:59</span>
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="btn-row" style="margin-bottom:10px">
+            <span class="lbl" style="color:#4a586a">批量搜索：</span>
+            <input class="input-lg" style="width:320px;height:32px" placeholder="请输入门店ID，支持批量搜索，英文逗号隔开">
+            <button class="btn small primary" onclick="toast('搜索成功')">批量搜索</button>
+            <button class="btn small" onclick="toast('已重置')">重置</button>
+            <button class="btn small" onclick="exportNsaReportDetail()">导出</button>
+          </div>
+          <div class="hint">合计2083家门店，搜索和导出查看全部数据</div>
+          <div class="table-wrap">
+            <table style="min-width:1200px">
+              <thead><tr>
+                <th>门店ID</th><th>门店名称</th><th>门店类型</th><th>分销订单数量</th><th>积分订单数量</th>
+                <th>调整数量</th><th>合计数量</th><th>已用数量</th><th>剩余数量</th><th>创建时间</th><th>更新时间</th>
+              </tr></thead>
+              <tbody>
+                <tr><td>9715</td><td>合肥市包河区爱婴坊</td><td>分店</td><td>3</td><td>2</td><td>0</td><td>5</td><td>0</td><td>5</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
+                <tr><td>14011</td><td>润心宝贝</td><td>分店</td><td>2</td><td>1</td><td>0</td><td>3</td><td>1</td><td>2</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
+                <tr><td>18579</td><td>差不多的母婴喂养馆</td><td>分店</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
+                <tr><td>5229</td><td>福州市鼓楼区杨桥母婴店</td><td>总店</td><td>4</td><td>0</td><td>0</td><td>4</td><td>2</td><td>2</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="actions" style="justify-content:flex-end;margin-top:14px;margin-bottom:0;gap:8px">
+            <span style="font-size:13px;color:#5d6c7f">共 2083 条 &nbsp; &lt; <span style="color:var(--blue);font-weight:700">1</span> &gt;&nbsp; 跳转到 <input class="field" style="width:46px;height:28px"> 页</span>
+            <button class="btn small">GO</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ NSA配额：新增/编辑页 ============ -->
+      <section id="nsa-edit-page" class="page">
+        <div class="card">
+          <div class="card-title" id="nsa-edit-title">新增NSA配额规则</div>
+          <div class="form">
+            <!-- 规则名称 -->
+            <div class="form-row"><label class="required">规则名称</label>
+              <div class="form-body"><input class="input-lg w" id="nf_name" placeholder="请填写规则名称，30字符内"></div>
+            </div>
+            <!-- 所属活动 -->
+            <div class="form-row"><label class="required">所属活动</label>
+              <div class="form-body"><select class="input-lg w" id="nf_activity" style="color:#9ca8b7"><option value="">请下拉选择活动</option><option>美赞牧场25年招新活动</option></select></div>
+            </div>
+            <!-- 统计时间 -->
+            <div class="form-row"><label class="required">统计时间</label>
+              <div class="form-body"><input class="input-lg w-lg" id="nf_stat_time" placeholder="开始时间 ～ 结束时间"></div>
+            </div>
+            <!-- 统计范围（多选） -->
+            <div class="form-row"><label class="required">统计范围</label>
+              <div class="form-body">
+                <div class="radios">
+                  <label><input type="checkbox" class="radio" id="nf_fenxiao" onchange="toggleNsaNote()">分销订单</label>
+                  <label><input type="checkbox" class="radio" id="nf_jifen" onchange="toggleNsaNote()">积分订单</label>
+                </div>
+                <div class="hint" id="nsa-fenxiao-note" style="display:none;color:#5d6c7f">分销订单：统计分销商品规格类型为「小罐」的指定出库商品的分销订单，以订单完成时间为准，在统计时间内订单已完成的商品数量；只有总店能下单，都统计给总店。</div>
+                <div class="hint" id="nsa-jifen-note" style="display:none;color:#5d6c7f">积分订单：统计积分订单，积分商品需获取罐码且返回的罐码对应商品名称为配置的指定出库商品的订单商品数量，以积分兑换订单已发货为准，统计时间内订单已发货的商品数量；总店或分店自己兑换，都统计给分店关联的总店。</div>
+              </div>
+            </div>
+            <!-- 出库时间 -->
+            <div class="form-row"><label class="required">出库时间</label>
+              <div class="form-body"><input class="input-lg w-lg" id="nf_out_time" placeholder="开始时间 ～ 结束时间">
+              <div class="hint">门店允许出库的时间</div></div>
+            </div>
+            <!-- 出库商品（获取出库商品按钮） -->
+            <div class="form-row"><label class="required">出库商品</label>
+              <div class="form-body"><div class="btn-row">
+                <button class="btn small" onclick="toast('已获取出库商品')">获取出库商品</button>
+                <span class="hint" style="margin:0">根据养牛活动带出出库商品</span>
+              </div></div>
+            </div>
+            <!-- 出库商品子表格 -->
+            <div class="form-row" style="margin-top:0"><label style="visibility:hidden">占位</label>
+              <div class="form-body">
+                <div class="table-wrap">
+                  <table style="min-width:900px">
+                    <thead><tr>
+                      <th>操作</th><th>名称</th><th>分销商品ID</th><th>分销商品名称</th><th>规格类型</th><th>出库数量</th>
+                    </tr></thead>
+                    <tbody id="nsa-goods-body">
+                      <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>蓝臻-S3 300G</td><td>326</td><td>美赞臣蓝臻幼儿配方奶粉（12-36月龄,3段）300G</td><td>小罐</td><td>1</td></tr>
+                      <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>蓝臻-S2 300G</td><td>325</td><td>美赞臣蓝臻较大婴儿配方奶粉（6-12月龄,2段）300G</td><td>小罐</td><td>1</td></tr>
+                      <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>蓝臻-S1 300G</td><td>324</td><td>美赞臣蓝臻婴儿配方奶粉（0-6月龄,1段）300G</td><td>小罐</td><td>1</td></tr>
+                      <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>亲舒S1-370g</td><td>301</td><td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉370g</td><td>小罐</td><td>1</td></tr>
+                      <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>亲舒1-370g礼品兑换</td><td>320</td><td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉850g</td><td>大罐</td><td>1</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="hint" style="color:#b0761f;margin:4px 0 0">⚠ 同一时间段内的规则不允许重复，请勿与既有规则统计时间重叠。</div>
+
+            <div class="sticky-actions">
+              <button class="btn primary big" onclick="saveNsaEdit()">保存</button>
+              <button class="btn big" onclick="showPage('nsa-rules')">取消</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ NSA配额：查看详情页 ============ -->
+      <section id="nsa-detail-page" class="page">
+        <div class="card">
+          <div class="detail-head">
+            <button class="btn small" onclick="showPage('nsa-rules')">← 返回列表</button>
+            <div class="card-title">8月NSA配额规则</div>
+            <span class="badge">启用</span>
+          </div>
+          <div class="detail-grid">
+            <span><b>序号：</b>1</span>
+            <span><b>规则名称：</b>8月NSA配额规则</span>
+            <span><b>所属活动：</b>美赞牧场25年招新活动</span>
+            <span><b>统计范围：</b>分销订单、积分订单</span>
+            <span><b>统计时间：</b>2026-08-01 00:00:00 ~ 2026-08-31 23:59:59</span>
+            <span><b>出库时间：</b>2026-08-07 09:40:00 ~ 2026-08-31 23:59:59</span>
+            <span><b>创建时间：</b>账号名称<br>2026-08-07 08:54:15</span>
+            <span><b>更新时间：</b>账号名称<br>2026-08-18 16:16:55</span>
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">出库商品</div>
+          <div class="table-wrap">
+            <table style="min-width:900px">
+              <thead><tr>
+                <th>名称</th><th>分销商品ID</th><th>分销商品名称</th><th>规格类型</th><th>出库数量</th>
+              </tr></thead>
+              <tbody>
+                <tr><td>蓝臻-S3 300G</td><td>326</td><td>美赞臣蓝臻幼儿配方奶粉（12-36月龄,3段）300G</td><td>小罐</td><td>1</td></tr>
+                <tr><td>蓝臻-S2 300G</td><td>325</td><td>美赞臣蓝臻较大婴儿配方奶粉（6-12月龄,2段）300G</td><td>小罐</td><td>1</td></tr>
+                <tr><td>蓝臻-S1 300G</td><td>324</td><td>美赞臣蓝臻婴儿配方奶粉（0-6月龄,1段）300G</td><td>小罐</td><td>1</td></tr>
+                <tr><td>亲舒S1-370g</td><td>301</td><td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉370g</td><td>小罐</td><td>1</td></tr>
+                <tr><td>亲舒1-370g礼品兑换</td><td>320</td><td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉850g</td><td>大罐</td><td>1</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">统计规则说明</div>
+          <div class="hint" style="margin:0 0 8px;color:#4a586a">分销订单：统计分销商品规格类型为「小罐」的指定出库商品的分销订单，以订单完成时间为准，在统计时间内订单已完成的商品数量；只有总店能下单，都统计给总店。</div>
+          <div class="hint" style="margin:0;color:#4a586a">积分订单：统计积分订单，积分商品需获取罐码且返回的罐码对应商品名称为配置的指定出库商品的订单商品数量，以积分兑换订单已发货为准，统计时间内订单已发货的商品数量；总店或分店自己兑换，都统计给分店关联的总店。</div>
+        </div>
+      </section>
+
+      <!-- ============ 商品配置：占位页 ============ -->
+      <section id="product-list-page" class="page">
+        <div class="card" style="text-align:center;padding:80px 20px;color:#8c9bae">
+          商品配置页面占位，可按同样方式扩展
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+
+  <!-- APP-美赞优购 端（小程序预览） -->
+  <div id="app-view" class="app-view">
+    <div class="phone-frame">
+      <div class="app-shell"><div class="app-screen" id="screen-mine">
+  <div class="app-mine">
+
+<div class="page-wrap">
+  <!-- 状态栏 -->
+  <div class="status-bar">
+    <span>9:41 AM</span>
+    <div class="status-right">
+      <span>5G</span>
+      <span>100%</span>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- 用户信息 -->
+  <div class="user-header">
+    <div class="user-info">
+      <div class="avatar-wrap">
+        <div class="avatar">🏪</div>
+        <div class="avatar-badge">黄金门店</div>
+      </div>
+      <div class="user-meta">
+        <div class="store-name">美赞臣官方旗舰店</div>
+        <div class="account">账号：133******33</div>
+      </div>
+    </div>
+    <button class="service-btn">
+      <span class="icon-headset"></span>
+      <span>在线客服</span>
+    </button>
+  </div>
+
+  <!-- 我的订单 -->
+  <div class="card">
+    <div class="section-header">
+      <div class="section-title">我的订单</div>
+      <div class="section-more">查看全部</div>
+    </div>
+    <div class="icon-grid">
+      <div class="icon-item">
+        <div class="icon-box blue">📦</div>
+        <div class="icon-label">待付款</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-box orange">🚚<span class="badge">99+</span></div>
+        <div class="icon-label">待发货</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-box green">📬<span class="badge">2</span></div>
+        <div class="icon-label">待收货</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-box purple">✅<span class="badge">20</span></div>
+        <div class="icon-label">已完成</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-box red">↩️</div>
+        <div class="icon-label">退单/售后</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 优惠活动 -->
+  <div class="card">
+    <div class="section-header">
+      <div class="section-title">优惠活动</div>
+    </div>
+    <div class="icon-grid">
+      <div class="icon-item">
+        <div class="icon-box red">¥</div>
+        <div class="icon-label">优惠券</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-box orange">¥</div>
+        <div class="icon-label">返利钱包</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-box blue">🎟</div>
+        <div class="icon-label">组合活动</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-box purple">🎁</div>
+        <div class="icon-label">礼品卡</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-box cyan">🪜</div>
+        <div class="icon-label">陈列路演</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 招新活动 -->
+  <div class="card">
+    <div class="section-header">
+      <div class="section-title">招新活动</div>
+    </div>
+    <div class="icon-grid col-2">
+      <div class="icon-item" onclick="showAppScreen('ranch')">
+        <div class="icon-box blue">🐮</div>
+        <div class="icon-label">美赞牧场</div>
+      </div>
+      <div class="icon-item" onclick="showAppScreen('scanout')">
+        <div class="icon-box green">📲</div>
+        <div class="icon-label">扫码出库</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 基础信息 -->
+  <div class="card">
+    <div class="section-header">
+      <div class="section-title">基础信息</div>
+    </div>
+    <div class="icon-grid col-3">
+      <div class="icon-item">
+        <div class="icon-box blue">📍</div>
+        <div class="icon-label">收货地址</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-box orange">🧾</div>
+        <div class="icon-label">开票信息</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-box green">💳</div>
+        <div class="icon-label">快捷支付</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-box purple">📋</div>
+        <div class="icon-label">平台协议</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-box cyan">🔔</div>
+        <div class="icon-label">消息通知</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-box gray">⚙️</div>
+        <div class="icon-label">个人设置</div>
+      </div>
+    </div>
+  </div></div>
+  </div>
+</div>
+<div class="app-screen" id="screen-ranch" style="display:none">
+<div class="page-wrap">
+  <!-- 状态栏 -->
+  <div class="status-bar">
+    <span>9:41 AM</span>
+    <div class="status-right">
+      <span>5G</span>
+      <span>100%</span>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- 顶部导航 -->
+  <div class="header">
+    <div class="back" onclick="showAppScreen('mine')"></div>
+    <div class="title">美赞牧场</div>
+  </div>
+
+  <!-- Tab -->
+  <div class="tabs">
+    <div class="tab" data-tab="rules">活动规则</div>
+    <div class="tab" data-tab="share">活动分享</div>
+    <div class="tab active" data-tab="gift">礼品统计</div>
+    <div class="tab" data-tab="exchange">兑换明细</div>
+  </div>
+
+  <!-- 活动规则 -->
+  <div class="content" id="tab-rules">
+    <div class="placeholder">活动规则内容</div>
+  </div>
+
+  <!-- 活动分享 -->
+  <div class="content" id="tab-share">
+    <div class="placeholder">活动分享内容</div>
+  </div>
+
+  <!-- 礼品统计 -->
+  <div class="content active" id="tab-gift">
+    <div class="month-picker"><select id="month-select" onchange="changeMonth(this.value)"><option value="2024-05">2024年5月</option><option value="2024-06">2024年6月</option></select></div>
+
+    <!-- 统计卡片 -->
+    <div class="card">
+      <div class="stat-grid">
+        <div class="stat-item">
+          <div class="stat-value">12</div>
+          <div class="stat-label">NUA累计新客</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">3</div>
+          <div class="stat-label">NUA本月新客</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">100.00</div>
+          <div class="stat-label">NUA累计预估返利(元)</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">10000.00</div>
+          <div class="stat-label">NUA本月预估返利(元)</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">12</div>
+          <div class="stat-label">NSA累计新客</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">3</div>
+          <div class="stat-label">NSA本月新客</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">10000.00</div>
+          <div class="stat-label">NSA累计预估返利(元)</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">10000.00</div>
+          <div class="stat-label">NSA本月预估返利(元)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 配额卡片 -->
+    <div class="card">
+      <div class="quota-title">配额</div>
+      <div class="quota-rule"><b>规则说明：</b>此模块无数据或出库剩余配额等于0不允许出库</div>
+      <div class="quota-rule"><b>NUA规则时间：</b><span id="nua-rule-time">2026-07-17 16:22:00~2026-07-30 00:00:00</span></div>
+      <div class="quota-rule" id="nsa-rule-time-row"><b>NSA规则时间：</b><span id="nsa-rule-time">2026-08-01 00:00:00~2026-08-31 23:59:59</span></div>
+      <div class="quota-grid">
+        <div class="stat-item">
+          <div class="stat-value">300</div>
+          <div class="stat-label">NUA剩余配额</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">10</div>
+          <div class="stat-label">NUA已用配额</div>
+        </div>
+        <div class="stat-item" id="nsa-remain-box">
+          <div class="stat-value" id="nsa-remain">300</div>
+          <div class="stat-label">NSA剩余配额</div>
+        </div>
+        <div class="stat-item" id="nsa-used-box">
+          <div class="stat-value" id="nsa-used">10</div>
+          <div class="stat-label">NSA已用配额</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 总配额 -->
+    <div class="total-quota">总配额：12</div>
+
+    <!-- 礼品列表 -->
+    <div class="gift-list">
+      <div class="gift-item">
+        <div class="gift-thumb"></div>
+        <div class="gift-info">
+          <div class="gift-name">兑换商品名称的名称最多展示2行最多展示2行超过就…</div>
+          <div class="gift-meta">
+            <span>合计 xx 份</span>
+            <span>已用 xx 份</span>
+            <span class="remain">剩余 xx 份</span>
+          </div>
+        </div>
+        <div class="gift-arrow"></div>
+      </div>
+      <div class="gift-item">
+        <div class="gift-thumb"></div>
+        <div class="gift-info">
+          <div class="gift-name">兑换商品名称的名称最多展示2行最多展示2行超过就…</div>
+          <div class="gift-meta">
+            <span>合计 xx 份</span>
+            <span>已用 xx 份</span>
+            <span class="remain">剩余 xx 份</span>
+          </div>
+        </div>
+        <div class="gift-arrow"></div>
+      </div>
+      <div class="gift-item">
+        <div class="gift-thumb"></div>
+        <div class="gift-info">
+          <div class="gift-name">兑换商品名称的名称最多展示2行最多展示2行超过就…</div>
+          <div class="gift-meta">
+            <span>合计 xx 份</span>
+            <span>已用 xx 份</span>
+            <span class="remain">剩余 xx 份</span>
+          </div>
+        </div>
+        <div class="gift-arrow"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 兑换明细 -->
+  <div class="content" id="tab-exchange">
+    <div class="placeholder">兑换明细内容</div>
+  </div>
+</div>
+</div>
+<div class="app-screen" id="screen-home" style="display:none"><div class="app-placeholder">首页 · 页面建设中</div></div>
+<div class="app-screen" id="screen-mall" style="display:none"><div class="app-placeholder">商城 · 页面建设中</div></div>
+<div class="app-screen" id="screen-cross" style="display:none"><div class="app-placeholder">跨境 · 页面建设中</div></div>
+<div class="app-screen" id="screen-scanout" style="display:none">
+<div class="app-scanout">
+  <div class="page-wrap">
+    <div class="status-bar"><span>9:41 AM</span><div class="status-right"><span>5G</span><span>100%</span><div class="battery"><div class="battery-fill"></div></div></div></div>
+    <div class="header">
+      <div class="back" onclick="showAppScreen('mine')"></div>
+      <div class="title">扫码出库</div>
+    </div>
+    <div class="tabs">
+      <div class="tab active" data-tab="scan">扫码出库</div>
+      <div class="tab" data-tab="order">出库订单</div>
+    </div>
+    <div class="content active" id="tab-scan">
+      <div class="time-bar">
+        <span>当前时间（演示）</span>
+        <select id="scanout-time" onchange="updateScanoutNSA()">
+          <option value="in">2026-08-15（在NSA出库时间内）</option>
+          <option value="out">2026-09-15（不在NSA出库时间内）</option>
+        </select>
+      </div>
+      <div class="nsa-disabled-tip" id="nsa-disabled-tip">当前不在 NSA 出库时间范围内，不展示 NSA 配额与返利，且不允许 NSA 出库。</div>
+      <div class="card scan-card">
+        <div class="step-title">第一步</div>
+        <div class="step-sub">请扫会员二维码</div>
+        <button class="scan-btn" onclick="openScanTypeModal()">
+          <span class="qr-icon"></span>
+          <span>扫一扫</span>
+        </button>
+      </div>
+      <div class="card">
+        <div class="quota-section">
+          <div class="quota-name">出库限额（按单）</div>
+          <div class="quota-hint">此模块无数据或出库剩余限额等于0不允许出库</div>
+          <div class="quota-grid">
+            <div class="quota-item"><div class="quota-value">300</div><div class="quota-label">NUA出库剩余配额</div></div>
+            <div class="quota-item"><div class="quota-value">10</div><div class="quota-label">NUA出库已用配额</div></div>
+            <div class="quota-item nsa-quota-item"><div class="quota-value">300</div><div class="quota-label">NSA出库剩余配额</div></div>
+            <div class="quota-item nsa-quota-item"><div class="quota-value">10</div><div class="quota-label">NSA出库已用配额</div></div>
+          </div>
+        </div>
+        <div class="quota-section">
+          <div class="quota-name">首单返利配额（按单）</div>
+          <div class="quota-grid">
+            <div class="quota-item"><div class="quota-value">300</div><div class="quota-label">NUA返利剩余配额</div></div>
+            <div class="quota-item"><div class="quota-value">10</div><div class="quota-label">NUA返利已用配额</div></div>
+            <div class="quota-item nsa-quota-item"><div class="quota-value">300</div><div class="quota-label">NSA返利剩余配额</div></div>
+            <div class="quota-item nsa-quota-item"><div class="quota-value">10</div><div class="quota-label">NSA返利已用配额</div></div>
+          </div>
+        </div>
+        <div class="quota-section">
+          <div class="quota-name">复购返利配额（按单）</div>
+          <div class="quota-grid">
+            <div class="quota-item"><div class="quota-value">300</div><div class="quota-label">NUA返利剩余配额</div></div>
+            <div class="quota-item"><div class="quota-value">10</div><div class="quota-label">NUA返利已用配额</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="rule-divider">规则说明</div>
+      <div class="rule-card">
+        <div class="rule-card-title"><span class="rule-dot"></span>出库时间</div>
+      </div>
+    </div>
+    <!-- 出库商品类型弹窗 -->
+    <div class="modal-mask" id="scan-type-modal" onclick="if(event.target===this) closeScanTypeModal()">
+      <div class="type-modal">
+        <div class="modal-head">
+          <div class="modal-title">出库商品类型</div>
+          <div class="modal-close" onclick="closeScanTypeModal()"></div>
+        </div>
+        <div class="type-option" data-type="small" onclick="selectScanType('small')">
+          <div class="type-info">
+            <div class="type-name">小罐</div>
+            <div class="type-desc">门店扫描小罐罐底码并上传小票，门店扫码出库后会员无需兑换。扫码出库后不能更改，请谨慎操作！</div>
+          </div>
+          <div class="type-radio"></div>
+        </div>
+        <div class="type-option selected" data-type="big" onclick="selectScanType('big')">
+          <div class="type-info">
+            <div class="type-name">大罐</div>
+            <div class="type-desc">门店扫描大罐罐底码并上传小票，门店扫码出库后会员可继续兑换。扫码出库后不能更改，请谨慎操作！</div>
+            <div class="type-warn">您的NUA配额等于0，请联系销售代表处理</div>
+          </div>
+          <div class="type-radio"></div>
+        </div>
+        <button class="modal-confirm" onclick="confirmScanType()">确定</button>
+      </div>
+    </div>
+    <div class="content" id="tab-order">
+      <div class="placeholder">出库订单列表 · 页面建设中</div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+    <div class="app-tabbar">
+  <div class="app-tab-item" data-tab="home" onclick="showAppScreen('home')"><div class="tab-icon">🏠</div><span>首页</span></div>
+  <div class="app-tab-item" data-tab="mall" onclick="showAppScreen('mall')"><div class="tab-icon">🏪</div><span>商城</span></div>
+  <div class="app-tab-item" data-tab="cross" onclick="showAppScreen('cross')"><div class="tab-icon">🌐</div><span>跨境</span></div>
+  <div class="app-tab-item active" data-tab="mine" onclick="showAppScreen('mine')"><div class="tab-icon profile">☺</div><span>我的</span></div>
+</div>
+    </div>
+    <script>
+
+  function showAppScreen(name){
+    document.querySelectorAll('.app-screen').forEach(function(s){ s.style.display = (s.id === 'screen-' + name) ? 'block' : 'none'; });
+    var tabbar = document.querySelector('.app-tabbar');
+    if(tabbar) tabbar.style.display = (name === 'ranch' || name === 'scanout') ? 'none' : 'flex';
+    document.querySelectorAll('.app-tab-item').forEach(function(t){ t.classList.toggle('active', t.dataset.tab === name); });
+  }
+  var monthQuotaData = {
+    '2024-05': {
+      nuaTime: '2026-07-17 16:22:00~2026-07-30 00:00:00',
+      nsaTime: '2026-08-01 00:00:00~2026-08-31 23:59:59',
+      showNSA: true,
+      nsaRemain: 300,
+      nsaUsed: 10
+    },
+    '2024-06': {
+      nuaTime: '2026-07-17 16:22:00~2026-07-30 00:00:00',
+      nsaTime: '',
+      showNSA: false,
+      nsaRemain: 0,
+      nsaUsed: 0
+    }
+  };
+  function changeMonth(val){
+    var data = monthQuotaData[val];
+    if(!data) return;
+    document.getElementById('nua-rule-time').textContent = data.nuaTime;
+    var nsaRow = document.getElementById('nsa-rule-time-row');
+    var nsaTime = document.getElementById('nsa-rule-time');
+    var nsaRemainBox = document.getElementById('nsa-remain-box');
+    var nsaUsedBox = document.getElementById('nsa-used-box');
+    if(data.showNSA){
+      nsaRow.style.display = 'block';
+      nsaTime.textContent = data.nsaTime;
+      nsaRemainBox.style.display = 'block';
+      nsaUsedBox.style.display = 'block';
+      document.getElementById('nsa-remain').textContent = data.nsaRemain;
+      document.getElementById('nsa-used').textContent = data.nsaUsed;
+    }else{
+      nsaRow.style.display = 'none';
+      nsaRemainBox.style.display = 'none';
+      nsaUsedBox.style.display = 'none';
+    }
+  }
+  function openScanTypeModal(){ document.getElementById('scan-type-modal').classList.add('show'); }
+  function closeScanTypeModal(){ document.getElementById('scan-type-modal').classList.remove('show'); }
+  function selectScanType(type){
+    document.querySelectorAll('#scan-type-modal .type-option').forEach(function(opt){ opt.classList.toggle('selected', opt.dataset.type === type); });
+  }
+  function confirmScanType(){
+    var selected = document.querySelector('#scan-type-modal .type-option.selected');
+    var typeName = selected ? (selected.dataset.type === 'big' ? '大罐' : '小罐') : '大罐';
+    closeScanTypeModal();
+    toast('已选择：' + typeName + '，进入商品扫码');
+  }
+  function updateScanoutNSA(){
+    var inRange = document.getElementById('scanout-time').value === 'in';
+    document.querySelectorAll('#screen-scanout .nsa-quota-item').forEach(function(item){ item.style.display = inRange ? 'block' : 'none'; });
+    document.getElementById('nsa-disabled-tip').classList.toggle('show', !inRange);
+  }
+  updateScanoutNSA();
+  document.querySelectorAll('.tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      var screen = this.closest('.app-screen');
+      if (!screen) return;
+      var target = this.dataset.tab;
+      screen.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+      screen.querySelectorAll('.content').forEach(function(c) { c.classList.remove('active'); });
+      this.classList.add('active');
+      var content = screen.querySelector('#tab-' + target);
+      if (content) content.classList.add('active');
+    });
+  });
+
+    </script>
+  </div>
+
+<div id="toast"></div>
+
+<script>
+  function switchEnd(end){
+    document.getElementById('pc-view').style.display = end==='pc' ? 'flex' : 'none';
+    document.getElementById('app-view').classList.toggle('show', end==='app');
+    document.querySelectorAll('.top-dock button').forEach(function(b){ b.classList.toggle('active', b.dataset.end===end); });
+  }
+  var currentModule = 'quota';
+  function switchModule(m){
+    currentModule = m;
+    ['tab-product','tab-rebate','tab-quota','tab-nsa'].forEach(function(id){
+      document.getElementById(id).classList.toggle('current', id==='tab-'+m);
+    });
+    // 默认进入模块列表页
+    if(m==='product') showPage('product-list');
+    else if(m==='rebate') showPage('list');
+    else if(m==='nsa') showPage('nsa-rules');
+    else showPage('quota-list');
+  }
+
+  function showPage(p, mode){
+    // 隐藏所有 page
+    var pages = ['list-page','edit-page','detail-page','quota-list-page','quota-edit-page','quota-detail-page','product-list-page','nsa-rules-page','nsa-edit-page','nsa-detail-page','nsa-report-page','nsa-report-edit-page','nsa-report-detail-page'];
+    pages.forEach(function(id){ document.getElementById(id).classList.remove('active'); });
+
+    var titleMap = {
+      'list':'返利配置','edit':'编辑返利配置','detail':'返利详情',
+      'quota-list':'NUA配额','quota-edit':'编辑NUA配额','quota-detail':'查看NUA配额','product-list':'商品配置',
+      'nsa-rules':'NSA配额','nsa-edit':'编辑NSA配额规则','nsa-detail':'查看NSA配额规则','nsa-report':'配额报表','nsa-report-edit':'编辑配额报表','nsa-report-detail':'查看配额报表'
+    };
+    var targetId = p + '-page';
+    document.getElementById(targetId).classList.add('active');
+
+    var curTitle = titleMap[p];
+    if(p==='edit') curTitle = (mode==='edit') ? '编辑返利' : '新建返利配置';
+    if(p==='quota-edit') curTitle = (mode==='edit') ? '编辑NUA配额' : '新增NUA配额';
+    if(p==='nsa-edit') curTitle = (mode==='edit') ? '编辑NSA配额规则' : '新增NSA配额规则';
+    document.getElementById('quota-edit-title') && (document.getElementById('quota-edit-title').textContent = (p==='quota-edit' && mode==='add') ? '新增NUA配额' : '编辑NUA配额');
+    document.getElementById('nsa-edit-title') && (document.getElementById('nsa-edit-title').textContent = (p==='nsa-edit' && mode==='add') ? '新增NSA配额规则' : '编辑NSA配额规则');
+    document.getElementById('bread-cur').textContent = curTitle;
+
+    if(p==='edit'){
+      if(mode==='add'){
+        document.getElementById('f_name').value='';
+        document.getElementById('f_activity').value='';
+        document.getElementById('f_time').value='';
+        document.getElementById('rt_first').checked=true;
+      }else{
+        document.getElementById('f_name').value='名称001';
+        document.getElementById('f_activity').value='26年养牛活动';
+        document.getElementById('f_time').value='2021-04-21 00:00:00 ~ 2021-05-21 00:00:00';
+        document.getElementById('rt_first').checked=true;
+      }
+    }
+    if(p==='quota-edit'){
+      if(mode==='add'){
+        document.getElementById('qf_name').value='';
+        document.getElementById('qf_activity').value='';
+        document.getElementById('qf_time').value='';
+        document.getElementById('quota-goods-body').innerHTML = '';
+        document.getElementById('quota-store-body').innerHTML = '';
+      }else{
+        document.getElementById('qf_name').value='8月扫码限额';
+        document.getElementById('qf_activity').value='美赞牧场25年招新活动';
+        document.getElementById('qf_time').value='2026-08-07 09:40:00 ~ 2026-08-31 23:59:59';
+        restoreQuotaData();
+      }
+    }
+    if(p==='nsa-edit'){
+      if(mode==='add'){
+        document.getElementById('nf_name').value='';
+        document.getElementById('nf_activity').value='';
+        document.getElementById('nf_stat_time').value='';
+        document.getElementById('nf_out_time').value='';
+        document.getElementById('nf_fenxiao').checked=false;
+        document.getElementById('nf_jifen').checked=false;
+        document.getElementById('nsa-fenxiao-note').style.display='none';
+        document.getElementById('nsa-jifen-note').style.display='none';
+        document.getElementById('nsa-goods-body').innerHTML = '';
+      }else{
+        document.getElementById('nf_name').value='8月NSA配额规则';
+        document.getElementById('nf_activity').value='美赞牧场25年招新活动';
+        document.getElementById('nf_stat_time').value='2026-08-01 00:00:00 ~ 2026-08-31 23:59:59';
+        document.getElementById('nf_out_time').value='2026-08-07 09:40:00 ~ 2026-08-31 23:59:59';
+        document.getElementById('nf_fenxiao').checked=true;
+        document.getElementById('nf_jifen').checked=true;
+        toggleNsaNote();
+        restoreNsaData();
+      }
+    }
+    if(p==='nsa-rules') setNsaSubtab('rules');
+    if(p==='nsa-report') setNsaSubtab('report');
+    window.scrollTo(0,0);
+  }
+
+  function restoreQuotaData(){
+    document.getElementById('quota-goods-body').innerHTML =
+      '<tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>亲舒1-370g礼品兑换</td><td>320</td><td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉850g</td><td>大罐</td><td>1</td></tr>'+
+      '<tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>蓝臻-S3 300G</td><td>326</td><td>美赞臣蓝臻幼儿配方奶粉（12-36月龄,3段）300G</td><td>小罐</td><td>1</td></tr>'+
+      '<tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>蓝臻-S2 300G</td><td>325</td><td>美赞臣蓝臻较大婴儿配方奶粉（6-12月龄,2段）300G</td><td>小罐</td><td>1</td></tr>'+
+      '<tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>蓝臻-S1 300G</td><td>324</td><td>美赞臣蓝臻婴儿配方奶粉（0-6月龄,1段）300G</td><td>小罐</td><td>1</td></tr>'+
+      '<tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>亲舒S1-370g</td><td>301</td><td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉370g</td><td>小罐</td><td>1</td></tr>';
+    document.getElementById('quota-store-body').innerHTML =
+      '<tr><td>9715</td><td>合肥市包河区爱婴坊</td><td><input class="cell-input" value="2" placeholder="请输入门店NUA出库配额"></td><td><a class="link" style="color:var(--danger)">删除</a></td></tr>'+
+      '<tr><td>14011</td><td>润心宝贝</td><td><input class="cell-input" value="2" placeholder="请输入门店NUA出库配额"></td><td><a class="link" style="color:var(--danger)">删除</a></td></tr>'+
+      '<tr><td>18579</td><td>差不多的母婴喂养馆</td><td><input class="cell-input" value="2" placeholder="请输入门店NUA出库配额"></td><td><a class="link" style="color:var(--danger)">删除</a></td></tr>'+
+      '<tr><td>5229</td><td>福州市鼓楼区杨桥母婴店</td><td><input class="cell-input" value="2" placeholder="请输入门店NUA出库配额"></td><td><a class="link" style="color:var(--danger)">删除</a></td></tr>';
+  }
+
+  function saveEdit(){ toast('保存成功'); showPage('list'); }
+  function saveQuotaEdit(){ toast('保存成功'); showPage('quota-list'); }
+  function saveNsaEdit(){ toast('保存成功'); showPage('nsa-rules'); }
+  function restoreNsaData(){
+    document.getElementById('nsa-goods-body').innerHTML =
+      '<tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>蓝臻-S3 300G</td><td>326</td><td>美赞臣蓝臻幼儿配方奶粉（12-36月龄,3段）300G</td><td>小罐</td><td>1</td></tr>'+
+      '<tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>蓝臻-S2 300G</td><td>325</td><td>美赞臣蓝臻较大婴儿配方奶粉（6-12月龄,2段）300G</td><td>小罐</td><td>1</td></tr>'+
+      '<tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>蓝臻-S1 300G</td><td>324</td><td>美赞臣蓝臻婴儿配方奶粉（0-6月龄,1段）300G</td><td>小罐</td><td>1</td></tr>'+
+      '<tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>亲舒S1-370g</td><td>301</td><td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉370g</td><td>小罐</td><td>1</td></tr>'+
+      '<tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>亲舒1-370g礼品兑换</td><td>320</td><td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉850g</td><td>大罐</td><td>1</td></tr>';
+  }
+  function toggleNsaNote(){
+    document.getElementById('nsa-fenxiao-note').style.display = document.getElementById('nf_fenxiao').checked ? 'block' : 'none';
+    document.getElementById('nsa-jifen-note').style.display = document.getElementById('nf_jifen').checked ? 'block' : 'none';
+  }
+  function setNsaSubtab(t){
+    ['nsa-rules-page','nsa-report-page'].forEach(function(id){
+      document.getElementById(id).classList.toggle('active', id==='nsa-'+t+'-page');
+      var spans = document.getElementById(id).querySelectorAll('.inner-tabs span');
+      spans.forEach(function(s){ s.classList.toggle('active', s.getAttribute('onclick').indexOf("'"+t+"'")>-1); });
+    });
+    document.getElementById('bread-cur').textContent = (t==='rules') ? 'NSA配额' : '配额报表';
+  }
+  function showNsaTab(t){ setNsaSubtab(t); }
+  function recalcNsaReportRow(inp){
+    var tr = inp.closest('tr');
+    var fxs = parseInt(tr.children[3].textContent)||0;
+    var jfs = parseInt(tr.children[4].textContent)||0;
+    var adj = parseInt(inp.value)||0;
+    var used = parseInt(tr.children[7].textContent)||0;
+    var sum = fxs + jfs + adj;
+    tr.children[6].textContent = sum;
+    tr.children[8].textContent = sum - used;
+  }
+  function batchFillNsaReport(){
+    var v = document.getElementById('nsa-report-batch').value;
+    var rows = document.querySelectorAll('#nsa-report-edit-body tr');
+    rows.forEach(function(tr){
+      var inp = tr.querySelector('input');
+      if(inp){ inp.value = v; recalcNsaReportRow(inp); }
+    });
+    toast('已批量填入');
+  }
+  function downloadNsaReportTemplate(){
+    var rows = document.querySelectorAll('#nsa-report-edit-body tr');
+    var csv = '\uFEFF门店ID,门店名称,调整数量\n';
+    rows.forEach(function(tr){
+      var id = tr.children[0].textContent.trim();
+      var name = tr.children[1].textContent.trim();
+      var adj = tr.querySelector('input').value.trim() || '0';
+      csv += id + ',' + name + ',' + adj + '\n';
+    });
+    var blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'NSA配额报表调整模板.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+    toast('模板已下载');
+  }
+  function importNsaReport(el){
+    var file = el.files[0];
+    if(!file){ return; }
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var text = e.target.result;
+      var lines = text.split(/\r?\n/).filter(function(l){ return l.trim(); });
+      if(lines.length < 2){ toast('导入失败：文件为空'); el.value=''; return; }
+      var data = [];
+      for(var i=1;i<lines.length;i++){
+        var parts = lines[i].split(',');
+        if(parts.length < 3) continue;
+        data.push({id: parts[0].trim(), name: parts[1].trim(), adj: parseInt(parts[2].trim())||0});
+      }
+      var rows = document.querySelectorAll('#nsa-report-edit-body tr');
+      var invalid = [];
+      var matched = 0;
+      rows.forEach(function(tr){
+        var id = tr.children[0].textContent.trim();
+        var name = tr.children[1].textContent.trim();
+        var item = data.find(function(d){ return d.id === id && d.name === name; });
+        if(item){
+          var fxs = parseInt(tr.children[3].textContent)||0;
+          var jfs = parseInt(tr.children[4].textContent)||0;
+          var used = parseInt(tr.children[7].textContent)||0;
+          var sum = fxs + jfs + item.adj;
+          var left = sum - used;
+          if(left < 0) invalid.push(name);
+          matched++;
+        }
+      });
+      if(invalid.length > 0){
+        toast('导入失败：以下门店调整后剩余数量将小于0：' + invalid.join('、'));
+        el.value = '';
+        return;
+      }
+      if(matched === 0){
+        toast('未匹配到可导入的门店，请检查门店ID与门店名称');
+        el.value = '';
+        return;
+      }
+      rows.forEach(function(tr){
+        var id = tr.children[0].textContent.trim();
+        var name = tr.children[1].textContent.trim();
+        var item = data.find(function(d){ return d.id === id && d.name === name; });
+        if(item){
+          var inp = tr.querySelector('input');
+          inp.value = item.adj;
+          recalcNsaReportRow(inp);
+        }
+      });
+      toast('导入成功，共更新 ' + matched + ' 条门店数据，合计与剩余数量已实时更新');
+      el.value = '';
+    };
+    reader.onerror = function(){ toast('文件读取失败'); el.value=''; };
+    reader.readAsText(file);
+  }
+  function exportNsaReportDetail(){
+    var tbody = document.querySelector('#nsa-report-detail-page tbody');
+    if(!tbody){ return; }
+    var rows = tbody.querySelectorAll('tr');
+    if(!rows.length){ toast('暂无可导出数据'); return; }
+    var headers = ['门店ID','门店名称','门店类型','分销订单数量','积分订单数量','调整数量','合计数量','已用数量','剩余数量','创建时间','更新时间'];
+    var csv = '\uFEFF' + headers.join(',') + '\n';
+    rows.forEach(function(tr){
+      var cells = [];
+      Array.prototype.forEach.call(tr.children, function(td, i){
+        if(i === 9 || i === 10){
+          var m = td.textContent.match(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
+          cells.push(m ? m[0] : td.textContent.replace(/\s+/g,' ').trim());
+        } else {
+          cells.push(td.textContent.replace(/\s+/g,' ').trim());
+        }
+      });
+      csv += cells.join(',') + '\n';
+    });
+    var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'NSA配额报表-8月NSA配额规则.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+    toast('导出成功');
+  }
+  function saveNsaReportEdit(){ toast('保存成功'); showPage('nsa-report'); }
+  var tt=null;
+  function toast(m){var e=document.getElementById('toast');e.textContent=m;e.classList.add('show');if(tt)clearTimeout(tt);tt=setTimeout(function(){e.classList.remove('show')},1500);}
+</script>
+</body>
+</html>
