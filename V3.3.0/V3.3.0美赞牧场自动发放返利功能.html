@@ -1,0 +1,1779 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V3.3.0美赞牧场自动发放返利功能</title>
+  <style>
+    :root{
+      --navy:#102a4d; --navy-deep:#0b2140; --blue:#4c7ff0;
+      --text:#26364a; --muted:#8c9bae; --border:#e8edf4; --bg:#f5f7fb;
+      --danger:#e5544d; --success:#1eae74;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;color:var(--text);font:14px/1.45 "Microsoft YaHei","PingFang SC",Arial,sans-serif;background:#fff}
+    button,input,select,textarea{font:inherit} button{cursor:pointer}
+
+    /* ============= Layout ============= */
+    .shell{display:flex;min-height:100vh;background:#fff}
+    .sidebar{position:fixed;z-index:5;width:238px;height:100vh;overflow:auto;color:#c1d0e7;background:linear-gradient(180deg,#102b4e,#0b2140)}
+    .main{width:calc(100% - 238px);margin-left:238px;min-width:1000px}
+
+    /* ============= Sidebar ============= */
+    .brand{height:128px;padding:25px 20px 12px;border-bottom:1px solid rgba(255,255,255,.04)}
+    .brand-line{display:flex;align-items:center;gap:10px;color:#fff;font-size:23px;font-weight:700;white-space:nowrap}
+    .brand-mark{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#102b4e;font-size:18px}
+    .platform{margin:13px auto 0;width:92px;text-align:center;border-radius:3px;background:#596f8e;color:#182e4f}
+
+    .nav-group{padding:18px 14px 5px}
+    .nav-label{margin:0 0 9px;color:#7185a1;font-size:15px}
+    .nav-item{display:flex;align-items:center;gap:11px;height:45px;padding:0 12px;border-radius:4px;color:#c1d0e7;font-size:16px}
+    .nav-item.parent{color:#fff;font-size:18px}
+    .nav-item .arrow{margin-left:auto}
+    .nav-item .dot{width:6px;height:6px;border-radius:50%;background:#fff;display:none;flex:none}
+    .nav-item.active .dot{display:inline-block}
+    .nav-item.active{margin:0 -14px;padding-left:26px;border-radius:0;background:#2c3e5c;color:#fff}
+    .subnav .nav-item.active{padding-left:32px}
+    .subnav{margin:5px 0 12px}
+    .subnav .nav-item{padding-left:35px;font-size:15px}
+    .divider{height:1px;margin:15px 8px;background:rgba(255,255,255,.08)}
+
+    /* ============= Top Bar ============= */
+    .topbar{height:67px;display:flex;align-items:end;justify-content:space-between;padding:0 25px 0 25px;background:#eee}
+    .crumb-tab{display:flex;align-items:center;gap:20px;height:67px;color:#7d8897;font-size:16px}
+    .hamb{font-size:21px;color:#8a96a5}
+    .tab{align-self:stretch;display:flex;align-items:center;gap:40px;padding:0 18px;border-radius:12px 12px 0 0;background:#fff;color:var(--blue);font-weight:700;font-size:15px}
+    .tab .close{color:#9da6b3;font-size:19px;font-weight:400;cursor:pointer}
+    .user-info{display:flex;align-items:center;gap:10px;padding-bottom:14px;color:#516275;font-size:14px}
+    .avatar{width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:700}
+
+    .breadcrumb{height:63px;display:flex;align-items:center;padding:0 30px;border-bottom:1px solid var(--border);font-size:17px;color:var(--text)}
+    .breadcrumb a{color:var(--blue)}
+
+    /* ============= Content ============= */
+    .content{padding:18px 30px 50px}
+
+    /* Filter row */
+    .filters{display:flex;align-items:center;gap:11px;margin-bottom:14px}
+    .field,.select{position:relative;width:100%;height:36px;padding:0 12px;border:1px solid #dfe5ee;border-radius:4px;outline:none;color:#4a586a;background:#fff}
+    .select{display:flex;align-items:center;justify-content:space-between;color:#9ca8b7}
+    .select:after{content:'⌄';color:#9ca8b7;margin-left:6px}
+    .filter-label{color:#344254;font-size:14px;white-space:nowrap}
+    .filter-time{display:inline-flex;align-items:center;width:300px;height:36px;border:1px solid #dfe5ee;border-radius:4px;background:#fff;padding:0 6px;color:#9ca8b7;font-size:13px}
+    .filter-time input{height:32px;border:0;outline:none;background:transparent;text-align:center;color:#9ca8b7;width:130px}
+    .filter-time .dash{margin:0 4px}
+
+    /* Buttons */
+    .toolbar{display:flex;gap:10px;margin-bottom:18px}
+    .btn{height:35px;padding:0 15px;border:1px solid var(--border);border-radius:4px;background:#fff;color:#5d6c7f;display:inline-flex;align-items:center;gap:6px}
+    .btn.primary{border-color:var(--blue);background:var(--blue);color:#fff}
+    .btn .ico{font-size:14px;line-height:1}
+
+    /* Action bar */
+    .actions{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px}
+    .left-actions{display:flex;gap:10px}
+
+    /* Table */
+    .table-wrap{overflow:auto;border:1px solid var(--border)}
+    table{border-collapse:collapse;width:100%;min-width:1080px;font-size:13px}
+    th,td{height:43px;padding:8px 14px;border-right:1px solid #edf0f4;border-bottom:1px solid #edf0f4;text-align:left;white-space:nowrap}
+    th{background:#fafbfc;color:#344254;font-weight:700;border-bottom:1px solid var(--border)}
+    tbody tr:nth-child(even){background:#fbfcfe}
+    tbody tr:hover{background:#f4f7ff}
+    td.col-time{display:flex;flex-direction:column;line-height:1.4;color:#4a586a}
+    td.col-time .lbl{color:#9ca8b7;font-size:12px}
+    .status{color:#1eae74}
+    .link{color:var(--blue);cursor:pointer;text-decoration:none}
+    .link:hover{text-decoration:underline}
+
+    /* Pagination */
+    .pagination{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:18px 4px 0;color:#5d6c7f;font-size:13px}
+    .pagination .total{margin-right:auto;color:#5d6c7f}
+    .page-btn{min-width:30px;height:30px;padding:0 8px;border:1px solid #dfe5ee;border-radius:4px;background:#fff;color:#4a586a;display:inline-flex;align-items:center;justify-content:center}
+    .page-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+    .page-btn.disabled{color:#c0c8d2;cursor:not-allowed}
+    .page-input{width:46px;height:30px;border:1px solid var(--blue);border-radius:4px;text-align:center;color:var(--blue);outline:none}
+
+    /* Detail Modal */
+    .modal-mask{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(15,31,49,.45)}
+    .modal-mask.show{display:flex}
+    .modal-card{width:1100px;max-width:calc(100vw - 80px);background:#fff;border-radius:6px;box-shadow:0 14px 40px rgba(0,0,0,.22);overflow:hidden}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;height:54px;padding:0 22px;border-bottom:1px solid var(--border);font-size:17px;font-weight:700;color:#17283d}
+    .modal-head .close{font-size:20px;color:#9da6b3;cursor:pointer;line-height:1}
+    .modal-head .close:hover{color:#5d6c7f}
+    .modal-body{padding:18px 22px 8px}
+    .modal-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .modal-table-wrap{overflow:auto;border:1px solid var(--border)}
+    .modal-table{width:100%;border-collapse:collapse;font-size:13px;min-width:780px}
+    .modal-table th,.modal-table td{height:44px;padding:9px 14px;border-right:1px solid #edf0f4;border-bottom:1px solid #edf0f4;text-align:left;white-space:nowrap}
+    .modal-table th{background:#f4f6fb;color:#344254;font-weight:700}
+    .modal-table tbody tr:nth-child(even){background:#fbfcfe}
+    .modal-table .col-amount{color:#1eae74;font-weight:600}
+    .modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:14px 22px 18px;color:#5d6c7f;font-size:13px}
+
+    /* Sidebar width fix */
+    .sidebar::-webkit-scrollbar{width:6px}
+    .sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:3px}
+
+    /* ===== Top-level view switch ===== */
+    .view{display:none}
+    .view.active{display:block}
+
+    /* ===== Crumb-tab two top tabs ===== */
+    .crumb-tab .tab{position:relative;padding:0 14px;height:34px;display:inline-flex;align-items:center;cursor:pointer;color:#5d6c7f;font-size:14px}
+    .crumb-tab .tab.active{color:var(--blue);border-bottom:2px solid var(--blue);font-weight:600}
+    .crumb-tab .tab:hover{color:var(--blue)}
+
+    /* ===== NSA: top tabs (商品配置/返利配置/NUA配额/NSA配额) ===== */
+    .nsa-toptabs{display:flex;gap:30px;border-bottom:1px solid var(--border);margin:6px 0 14px}
+    .nsa-toptabs .ttab{padding:10px 2px;color:#4a586a;font-size:15px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+    .nsa-toptabs .ttab.active{color:var(--blue);border-color:var(--blue);font-weight:600}
+    .nsa-toptabs .ttab-back{margin-left:auto;padding:6px 14px;font-size:13px;color:#5d6c7f;cursor:pointer;border:1px solid #dfe5ee;border-radius:4px;background:#fff;display:flex;align-items:center;gap:4px;height:fit-content}
+    .nsa-toptabs .ttab-back:hover{color:var(--blue);border-color:var(--blue)}
+    .nsa-toptabs .ttab-back[hidden]{display:none}
+
+    /* ===== NSA: secondary tabs (配额规则/配额报表) ===== */
+    .subtabs{display:flex;gap:32px;margin-bottom:14px}
+    .subtabs .stab{padding:8px 2px;color:#4a586a;font-size:15px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+    .subtabs .stab.active{color:var(--blue);border-color:var(--blue);font-weight:600}
+
+    /* ===== NSA: empty placeholder for 未启用 top-tabs ===== */
+    .nsa-empty-card{margin:60px auto;max-width:560px;padding:48px 24px;text-align:center;background:#fafbfc;border:1px dashed #dfe5ee;border-radius:6px;color:#5d6c7f}
+    .nsa-empty-card .ico{font-size:40px;display:block;margin-bottom:12px;opacity:.6}
+    .nsa-empty-card .ttl{margin:0 0 6px;font-size:15px;color:#17283d;font-weight:600}
+    .nsa-empty-card .desc{margin:0;font-size:13px;color:#7a8a9e}
+    .nsa-empty-card .desc b{color:var(--blue);font-weight:600}
+
+    /* 隐藏：NSA 视图的面包屑（扫码配置 / NSA配额） */
+    #view-nsa .breadcrumb{display:none}
+
+    /* ===== NSA: 新增/编辑表单页 ===== */
+    .form-card{background:#fff;border:1px solid var(--border);border-radius:6px;padding:26px 32px 22px;margin-bottom:14px}
+    .form-card .form-title{margin:0 0 22px;font-size:17px;font-weight:600;color:#17283d;line-height:24px}
+    .form-row{display:flex;align-items:flex-start;min-height:46px;margin-bottom:18px}
+    .form-row.row-table{display:block}
+    .form-row.row-table .lbl{display:block;width:auto;text-align:left;padding-top:0;margin-right:0;margin-bottom:8px}
+    .form-row .lbl{width:96px;text-align:right;color:#17283d;font-size:14px;padding-top:10px;margin-right:12px;flex-shrink:0;line-height:1}
+    .form-row .lbl .req{color:#f5222d;margin-right:2px}
+    .form-row .ctrl{flex:1;min-width:0}
+    .form-row .ctrl .ipt{height:36px;width:420px;border:1px solid #dfe5ee;border-radius:4px;padding:0 12px;font-size:14px;color:#17283d;outline:none}
+    .form-row .ctrl .ipt:focus{border-color:var(--blue)}
+    .form-row .ctrl .ipt.ipt-time{width:160px}
+    .form-row .ctrl .ipt-time-wrap{display:flex;align-items:center;gap:8px}
+    .form-row .ctrl .ipt-time-wrap .sep{color:#5d6c7f}
+    .form-row .ctrl .ipt-time-wrap2{display:flex;align-items:center;gap:10px}
+    .form-row .ctrl .ipt-time-wrap2 .sep{color:#9ca8b7;margin:0 4px}
+    .form-row .ctrl .ipt-time-wrap2 .hint{padding-top:8px;color:#9ca8b7;font-size:13px}
+    .form-row .ctrl .sel{height:36px;width:420px;border:1px solid #dfe5ee;border-radius:4px;background:#fff;padding:0 12px;display:flex;align-items:center;color:#9ca8b7;font-size:14px}
+    .form-row .ctrl .chk-group{display:flex;gap:22px;padding-top:8px;align-items:center}
+    .form-row .ctrl .chk{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:#17283d;cursor:pointer}
+    .form-row .ctrl .chk input{width:14px;height:14px;accent-color:var(--blue);cursor:pointer}
+    .form-row .ctrl .row-inline{display:flex;align-items:center;gap:8px;font-size:14px;color:#17283d}
+    .form-row .ctrl .row-inline .get-link{color:var(--blue);font-size:13px;margin-right:8px;cursor:pointer}
+    .form-row .ctrl .row-inline .tip{color:#9ca8b7;font-size:13px}
+    .form-row .ctrl .warning{margin-top:6px;color:#f5222d;font-size:13px;display:flex;align-items:center;gap:4px}
+    .form-row .ctrl .table-mini{margin-top:8px;border:1px solid var(--border);border-radius:4px;overflow:hidden;width:100%}
+    .form-row .ctrl .table-mini table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+    .form-row .ctrl .table-mini th{background:#f4f6fb;color:#4a586a;font-weight:500;text-align:left;padding:10px 10px;border-bottom:1px solid var(--border)}
+    .form-row .ctrl .table-mini th:nth-child(1){min-width:54px}
+    .form-row .ctrl .table-mini th:nth-child(2){min-width:90px}
+    .form-row .ctrl .table-mini th:nth-child(3){min-width:78px}
+    .form-row .ctrl .table-mini th:nth-child(4){min-width:290px}
+    .form-row .ctrl .table-mini th:nth-child(5){min-width:80px}
+    .form-row .ctrl .table-mini th:nth-child(6){min-width:80px}
+    .form-row .ctrl .table-mini td{padding:14px;color:#9ca8b7;word-wrap:break-word}
+    .form-row .ctrl .table-mini td.qty-cell{color:#17283d;font-weight:500;text-align:center}
+    /* 扫码出库：门店名称 蓝链 + 状态徽章 */
+    .qc-storename{color:var(--blue);cursor:pointer;font-weight:500}
+    .qc-storename:hover{text-decoration:underline}
+    .qc-status{display:inline-block;padding:2px 10px;border-radius:11px;font-size:12px;line-height:1.5}
+    .qc-status.qc-ok{background:#eaf6ee;color:#1eae74}
+    .qc-status.qc-pending{background:#fff3e0;color:#ed7c2f}
+    .qc-status.qc-wait{background:#f0f4ff;color:var(--blue)}
+    .qc-status.qc-loading{background:#f0f2f5;color:#5d6c7f}
+    /* 扫码出库：表格列数 12 列，padding 收窄避免撑爆 ctrl 区 */
+    .table-wrap table.qc-table th,.table-wrap table.qc-table td{padding:12px 6px}
+    /* 表头水平垂直居中，符合截图视觉 */
+    .table-wrap table.qc-table th{text-align:center}
+    /* 订单号等长串单元格禁止换行 */
+    .table-wrap table.qc-table td.qc-mono{font-family:'SF Mono','Consolas',monospace;font-size:12px;white-space:nowrap}
+    .table-wrap table.qc-table th:nth-child(1),.table-wrap table.qc-table td:nth-child(1){min-width:32px}
+    .table-wrap table.qc-table th:nth-child(2){min-width:130px}
+    .table-wrap table.qc-table th:nth-child(3){min-width:60px}
+    .table-wrap table.qc-table th:nth-child(4){min-width:100px}
+    .table-wrap table.qc-table th:nth-child(5){min-width:160px}
+    .table-wrap table.qc-table th:nth-child(6){min-width:110px}
+    .table-wrap table.qc-table th:nth-child(7){min-width:180px}
+    .table-wrap table.qc-table th:nth-child(8){min-width:100px}
+    .table-wrap table.qc-table th:nth-child(9){min-width:80px}
+    .table-wrap table.qc-table th:nth-child(10){min-width:70px}
+    .table-wrap table.qc-table th:nth-child(11){min-width:120px}
+    .table-wrap table.qc-table th:nth-child(12){min-width:120px}
+    .table-wrap table.qc-table th:nth-child(13){min-width:50px}
+    .form-actions{padding-left:108px;display:flex;align-items:center;gap:10px}
+    .form-actions .btn-save{height:36px;min-width:88px;padding:0 18px;background:var(--blue);color:#fff;border:none;border-radius:4px;font-size:14px;cursor:pointer}
+    .form-actions .btn-save:hover{background:#3a6de6}
+    .form-actions .btn-cancel{height:36px;min-width:88px;padding:0 18px;background:#fff;color:#17283d;border:1px solid #dfe5ee;border-radius:4px;font-size:14px;cursor:pointer}
+    .form-actions .btn-cancel:hover{border-color:#9ca8b7}
+    .nsa-create-back{color:#5d6c7f;font-size:13px;display:inline-flex;align-items:center;gap:4px;cursor:pointer;margin-bottom:10px}
+    .nsa-create-back:hover{color:var(--blue)}
+
+    /* ===== NSA: edit form extras ===== */
+    .desc-block{margin-top:8px;color:#7a8a9e;font-size:12.5px;line-height:1.7}
+    .desc-block p{margin:0 0 2px}
+    .desc-block em{font-style:normal;color:#17283d;font-weight:600}
+    .tip-line{padding-left:10px;margin-top:6px;color:#9ca8b7;font-size:13px}
+    .ipt-qty{width:64px;height:30px;text-align:center;padding:0 6px}
+    .table-mini td .ipt{padding:4px 8px;font-size:13px}
+
+    /* ===== NSA: empty placeholder for 未启用 top-tabs ===== */
+
+    /* ===== NSA: filter bar ===== */
+    .fbar{display:flex;align-items:center;flex-wrap:wrap;gap:14px;padding:14px 16px;background:#fafbfc;border:1px solid var(--border);border-radius:4px;margin-bottom:14px}
+    .fbar .fitem{display:flex;align-items:center;gap:8px;font-size:13px;color:#5d6c7f}
+    .fbar .fitem input{height:32px;border:1px solid #dfe5ee;border-radius:4px;padding:0 10px;width:160px;font-size:13px;outline:none;color:#17283d}
+    .fbar .fitem input:focus{border-color:var(--blue)}
+    .fbar .fitem .select{height:32px;border:1px solid #dfe5ee;border-radius:4px;background:#fff;padding:0 12px;display:inline-flex;align-items:center;color:#9ca8b7;min-width:160px;font-size:13px}
+    .fbar .fitem .filter-time{display:flex;align-items:center;gap:6px}
+    .fbar .fitem .filter-time input{width:140px}
+    .fbar .fitem .dash{color:#9ca8b7}
+    .fbar .fitem select.ff-sel{height:32px;border:1px solid #dfe5ee;border-radius:4px;background:#fff;padding:0 8px;min-width:160px;font-size:13px;color:#4a586a;outline:none;cursor:pointer}
+    .fbar .fitem select.ff-sel:focus{border-color:var(--blue)}
+
+    /* ===== Toggle switch ===== */
+    .switch{position:relative;display:inline-block;width:40px;height:22px;border-radius:11px;background:#cfd5df;cursor:pointer;vertical-align:middle;transition:background .15s}
+    .switch::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:left .15s}
+    .switch.on{background:#1eae74}
+    .switch.on::after{left:20px}
+
+    /* ===== NSA: pagination with GO ===== */
+    .go-input{width:46px;height:30px;border:1px solid #dfe5ee;border-radius:4px;text-align:center;outline:none;margin:0 4px;font-size:13px}
+    .go-input:focus{border-color:var(--blue);color:var(--blue)}
+    .go-btn{height:30px;padding:0 12px;border:1px solid var(--blue);border-radius:4px;background:#fff;color:var(--blue);cursor:pointer;font-size:13px}
+    .go-btn:hover{background:#f0f4ff}
+
+    /* ===== NSA: view (read-only detail) ===== */
+    .view-head{display:flex;align-items:center;gap:14px;padding:6px 0 14px}
+    .view-head .view-title{margin:0;font-size:20px;font-weight:600;color:#17283d;display:flex;align-items:center;gap:10px}
+    .tag-status{display:inline-block;font-size:12px;padding:2px 10px;border-radius:11px;line-height:18px;border:1px solid transparent}
+    .tag-status.on{background:#eaf6f0;color:#1eae74;border-color:#bfe5d2}
+    .info-card{margin-top:6px;border:1px solid var(--border);border-radius:4px;background:#fff;padding:18px 22px}
+    .info-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:18px 24px}
+    .info-cell{display:flex;flex-direction:column;gap:6px;min-width:0}
+    .info-label{color:#9ca8b7;font-size:13px}
+    .info-val{color:#17283d;font-size:14px;word-break:break-all}
+    .view-section{margin-top:18px}
+    .view-section-title{font-size:14px;color:#4a586a;font-weight:500;margin:0 0 8px;padding-left:8px;border-left:3px solid var(--blue);line-height:18px}
+    .view-table table{width:100%;border-collapse:collapse}
+    .view-table th{background:#f4f6fb;color:#4a586a;font-weight:500;text-align:left;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px}
+    .view-table td{padding:14px;border-bottom:1px solid var(--border);font-size:14px;color:#17283d}
+    .view-table tr:last-child td{border-bottom:none}
+    .rule-tips{margin-top:18px;border-left:4px solid #17283d;background:#fafbfc;padding:14px 20px;border-radius:2px}
+    .rule-tips-title{font-size:14px;font-weight:600;color:#17283d;margin:0 0 8px}
+    .rule-tips-body{color:#5d6c7f;font-size:13px;line-height:1.85}
+    .rule-tips-body p{margin:0 0 4px}
+    .rule-tips-body em{font-style:normal;color:#17283d;font-weight:600}
+
+    /* ===== 扫码出库：详情页 #qc-view ===== */
+    .info-grid.info-grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .tag-status.danger{background:#fde8e6;color:#e5544d;border-color:#f5b3ad}
+    .tab-bar{display:flex;gap:32px;border-bottom:1px solid var(--border);margin-bottom:18px}
+    .tab-bar-item{padding:0 2px 10px;color:#5d6c7f;cursor:pointer;font-size:14px;position:relative;bottom:-1px;border-bottom:2px solid transparent;transition:color .15s}
+    .tab-bar-item:hover{color:var(--blue)}
+    .tab-bar-item.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+    .qc-view-back{color:#5d6c7f;font-size:13px;display:inline-flex;align-items:center;gap:4px;cursor:pointer;margin-bottom:10px}
+    .qc-view-back:hover{color:var(--blue)}
+    .empty-state{padding:80px 20px;text-align:center;color:#9ca8b7;font-size:14px}
+    .empty-state:before{content:'📋';display:block;font-size:36px;margin-bottom:14px;opacity:.5}
+    .qc-view-table{font-size:13px}
+    .qc-view-table th{background:#f4f6fb;color:#4a586a;font-weight:500;text-align:left;padding:10px 14px;border-bottom:1px solid var(--border);white-space:nowrap}
+    .qc-view-table td{padding:14px;border-bottom:1px solid var(--border);color:#17283d;word-break:break-all}
+    .qc-view-table tr:last-child td{border-bottom:none}
+
+    /* ===== 顶部产品形态切换：PC 后台 / APP-美赞优购 ===== */
+    .product-switcher{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);padding:12px 30px 0}
+    .product-switcher-inner{display:inline-flex;gap:6px;margin-bottom:0}
+    .ps-pill{padding:7px 20px;border-radius:20px;cursor:pointer;font-size:14px;color:#4a586a;background:#fff;border:1px solid var(--border);transition:all .15s;user-select:none}
+    .ps-pill:hover{border-color:var(--blue);color:var(--blue)}
+    .ps-pill.active{background:var(--blue);color:#fff;font-weight:600;border-color:var(--blue)}
+    /* 返利类型标签 / 预警提示 / 新增任务表单 */
+    .type-tag{display:inline-block;padding:2px 10px;border-radius:10px;font-size:12px;line-height:18px}
+    .type-tag.ran{background:#eef3fb;color:#4c7ff0;border:1px solid #d3e0fb}
+    .type-tag.mz{background:#fdf3e7;color:#d9821a;border:1px solid #f6dcb4}
+    .alert-note{display:flex;align-items:flex-start;gap:8px;margin:14px 0 2px;padding:10px 14px;background:#fff8ec;border:1px solid #f6e0b8;border-radius:8px;color:#8a6d3b;font-size:13px;line-height:1.6}
+    .alert-note .alert-ico{font-size:15px;line-height:1.4}
+    .alert-note b{color:#b5740f}
+    .form-row .ctrl .radio{display:inline-flex;align-items:center;gap:6px;margin-right:18px;font-size:14px;color:#17283d;cursor:default}
+    .form-row .ctrl .form-hint{margin-top:8px;color:#9ca8b7;font-size:12px;line-height:1.6}
+    .form-row .ctrl textarea{min-height:70px;width:420px;border:1px solid #dfe5ee;border-radius:4px;padding:8px 12px;font-size:14px;color:#17283d;outline:none;resize:vertical}
+    .form-row .ctrl textarea:focus{border-color:var(--blue)}
+    /* APP 视图：页内 iframe 嵌入，切换不离开当前链接 */
+    .app-frame-wrap{display:none;position:fixed;left:0;right:0;top:48px;bottom:0;z-index:90;background:#fff}
+    .app-frame-wrap.active{display:block}
+    .app-frame-wrap iframe{width:100%;height:100%;border:0;background:#fff}
+  </style>
+</head>
+<body>
+  <!-- 顶部产品形态切换：PC 后台 / APP-美赞优购 -->
+  <div class="product-switcher">
+    <div class="product-switcher-inner">
+      <span class="ps-pill active" id="psPc" onclick="switchProduct('pc')">PC 后台</span>
+      <span class="ps-pill" id="psApp" onclick="switchProduct('app')">APP-美赞优购</span>
+    </div>
+  </div>
+
+  <!-- APP 视图：页内嵌入美赞优购 APP 原型，切换不离开当前页面 -->
+  <div class="app-frame-wrap" id="appFrameWrap">
+    <iframe id="appFrame" data-src="美赞优购_产品功能总览.html#qc-list" title="美赞优购 APP"></iframe>
+  </div>
+
+  <div class="shell">
+
+    <!-- ============ Sidebar ============ -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-line"><span class="brand-mark">◆</span>美赞优购</div>
+        <div class="platform">平台</div>
+      </div>
+      <div class="nav-group">
+        <p class="nav-label">分销中心</p>
+        <div class="nav-item parent active" data-view="rebate">▧ 分销运营 <span class="arrow">⌄</span></div>
+        <div class="subnav">
+          <div class="nav-item active" data-view="rebate">返利导入</div>
+        </div>
+      </div>
+      <div class="nav-group">
+        <p class="nav-label">运营中心</p>
+        <div class="nav-item parent" data-view="nsa">▦ 美赞牧场 <span class="arrow">⌄</span></div>
+        <div class="subnav">
+          <div class="nav-item" data-view="nsa"><span class="dot"></span>扫码配置</div>
+          <div class="nav-item" data-view="qc">扫码出库</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ============ Main ============ -->
+    <main class="main">
+      <!-- Top Bar -->
+      <header class="topbar">
+        <div class="crumb-tab">
+          <span class="hamb">☰</span>
+          <span>首页</span>
+          <span class="tab active" data-view="rebate">返利导入</span>
+          <span class="tab" data-view="nsa">NSA配额规则</span>
+          <span class="tab" data-view="qc">扫码出库</span>
+        </div>
+        <div class="user-info">
+          <span class="avatar">HL</span>
+          <span>系统管理员</span>
+        </div>
+      </header>
+
+      <!-- ============== View: 返利导入 ============== -->
+      <div class="view view-rebate active" id="view-rebate">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+          <a>分销运营</a>&nbsp;/&nbsp;<span>返利导入</span>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+
+          <!-- Filter Row -->
+          <div class="filters">
+            <span class="filter-label">时间</span>
+            <div class="filter-time">
+              <input placeholder="开始时间" />
+              <span class="dash">-</span>
+              <input placeholder="结束时间" />
+            </div>
+            <span class="filter-label">状态</span>
+            <div class="select" style="width:160px">全部</div>
+            <span class="filter-label">返利类型</span>
+            <div class="select" style="width:160px">全部</div>
+            <div style="flex:1"></div>
+            <button class="btn primary">查询</button>
+            <button class="btn">重置</button>
+          </div>
+
+          <!-- Action Bar -->
+          <div class="actions">
+            <div class="left-actions">
+              <button class="btn primary" onclick="openAddTask()"><span class="ico">＋</span>新增任务</button>
+              <button class="btn primary"><span class="ico">⬇</span>下载模板</button>
+              <button class="btn"><span class="ico">⇪</span>导入</button>
+              <button class="btn"><span class="ico">⇧</span>导出</button>
+            </div>
+          </div>
+
+          <!-- 返利预警提示（规则占位，阈值 Y / 通知邮箱 待配置） -->
+          <div class="alert-note">
+            <span class="alert-ico">📧</span>
+            <span><b>返利预警</b>：返利类型 = 美赞牧场，且导入金额 &gt; Y 元时，自动发送邮件至指定邮箱（阈值 Y、通知邮箱待配置）。</span>
+          </div>
+
+          <!-- Table -->
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>任务编号</th>
+                  <th>返利类型</th>
+                  <th>门店数量</th>
+                  <th>导入金额总计（元）</th>
+                  <th>导入时间</th>
+                  <th>执行时间</th>
+                  <th>状态</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="pagination">
+            <span class="total">共 516 条</span>
+            <button class="page-btn disabled">‹</button>
+            <button class="page-btn active">1</button>
+            <span style="color:#9ca8b7">...</span>
+            <button class="page-btn">46</button>
+            <button class="page-btn">›</button>
+            <input class="page-input" value="1" />
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============== View: NSA 配额规则 ============== -->
+      <div class="view view-nsa" id="view-nsa">
+        <!-- 顶部 Tab: 商品配置/返利配置/NUA配额/NSA配额 -->
+        <div class="nsa-toptabs">
+          <span class="ttab" data-empty="1">商品配置</span>
+          <span class="ttab" data-empty="1">返利配置</span>
+          <span class="ttab" data-empty="1">NUA配额</span>
+          <span class="ttab active" data-empty="0">NSA配额</span>
+          <span class="ttab-back" id="nsa-back" title="返回配额规则"><span>←</span><span>返回配额规则</span></span>
+        </div>
+
+        <!-- 二级 Tab: 配额规则/配额报表（常驻，可来回切换） -->
+        <div class="subtabs">
+          <span class="stab active" data-empty="0">配额规则</span>
+          <span class="stab" data-empty="1">配额报表</span>
+        </div>
+
+        <div id="nsa-detail">
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+          <a>扫码配置</a>&nbsp;/&nbsp;<span>NSA配额</span>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="fbar">
+          <div class="fitem"><span>规则名称</span><input placeholder="请输入规则名称" /></div>
+          <div class="fitem"><span>活动ID</span><input placeholder="请输入活动ID" /></div>
+          <div class="fitem"><span>活动名称</span><span class="select">请选择活动名称</span></div>
+          <div class="fitem"><span>统计时间</span><span class="filter-time"><input placeholder="开始时间" /><span class="dash">-</span><input placeholder="结束时间" /></span></div>
+          <div class="fitem"><span>自动发放返利</span>
+            <select class="ff-sel">
+              <option>全部</option>
+              <option>是</option>
+              <option>否</option>
+            </select>
+          </div>
+          <button class="btn primary">查询</button>
+          <button class="btn">重置</button>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="actions">
+          <div style="flex:1"></div>
+          <button class="btn primary" id="nsa-add-btn"><span class="ico">+</span>新增NSA配额规则</button>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>序号</th>
+                <th>规则名称</th>
+                <th>所属活动</th>
+                <th>统计范围</th>
+                <th>自动发放返利</th>
+                <th>统计时间</th>
+                <th>出库时间</th>
+                <th>创建时间</th>
+                <th>更新时间</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="nsaRows">
+              <tr>
+                <td>1</td>
+                <td><a class="link" onclick="onViewNsa(1)">8月NSA配额规则</a></td>
+                <td>美赞牧场25年招募活动</td>
+                <td>分销订单、积分订单</td>
+                <td>是</td>
+                <td>2026-08-01 00:00:00 ~ 2026-08-31 23:59:59</td>
+                <td>2026-08-07 09:40:00 ~ 2026-08-31 23:59:59</td>
+                <td><div class="col-time"><span>新任务名称</span><span style="color:#9ca8b7">2026-08-07 08:54:15</span></div></td>
+                <td><div class="col-time"><span>新任务名称</span><span style="color:#9ca8b7">2026-08-18 16:16:55</span></div></td>
+                <td><span class="switch on" onclick="toggleSwitch(this)" title="点击切换"></span></td>
+                <td><a class="link" onclick="onEditNsa(1)">编辑</a></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><a class="link" onclick="onViewNsa(2)">7月NSA配额规则</a></td>
+                <td>美赞牧场25年招募活动</td>
+                <td>分销订单</td>
+                <td>否</td>
+                <td>2026-07-01 00:00:00 ~ 2026-07-31 23:59:59</td>
+                <td>2026-07-05 09:40:00 ~ 2026-07-31 23:59:59</td>
+                <td><div class="col-time"><span>新任务名称</span><span style="color:#9ca8b7">2026-07-01 18:59:44</span></div></td>
+                <td><div class="col-time"><span>新任务名称</span><span style="color:#9ca8b7">2026-07-15 15:14:43</span></div></td>
+                <td><span class="switch on" onclick="toggleSwitch(this)" title="点击切换"></span></td>
+                <td><a class="link" onclick="onEditNsa(2)">编辑</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination: 共 2 条 · < 1 > · 跳转到 [ ] 页 GO -->
+        <div class="pagination">
+          <span class="total">共 2 条</span>
+          <button class="page-btn disabled">‹</button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn disabled">›</button>
+          <span style="color:#5d6c7f;margin-left:10px">跳转到</span>
+          <input class="go-input" value="1" />
+          <span style="color:#5d6c7f">页</span>
+          <button class="go-btn">GO</button>
+        </div>
+
+        </div><!-- /#nsa-detail -->
+
+        <!-- 空状态：「配额报表」或「商品配置/返利配置/NUA配额」展示占位 -->
+        <div id="nsa-empty" style="display:none">
+          <div class="nsa-empty-card">
+            <span class="ico">📋</span>
+            <p class="ttl">暂无内容</p>
+            <p class="desc">该模块暂未提供具体数据，后续补充原型</p>
+          </div>
+        </div>
+
+        <!-- 新增 NSA 配额规则（与 list/empty 互斥） -->
+        <div id="nsa-create" style="display:none">
+          <div style="font-size:13px;color:#5d6c7f;margin-bottom:18px">
+            <a style="color:#5d6c7f;text-decoration:none">扫码配置</a>&nbsp;/&nbsp;<span style="color:#17283d">新增NSA配额规则</span>
+          </div>
+          <div class="form-card">
+            <p class="form-title">新增NSA配额规则</p>
+
+            <div class="form-row">
+              <div class="lbl"><span class="req">*</span>规则名称</div>
+              <div class="ctrl">
+                <input class="ipt" maxlength="30" placeholder="请填写规则名称，30字符内" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="lbl"><span class="req">*</span>所属活动</div>
+              <div class="ctrl">
+                <div class="sel">请下拉选择活动</div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="lbl"><span class="req">*</span>统计时间</div>
+              <div class="ctrl">
+                <div class="ipt-time-wrap2">
+                  <input class="ipt ipt-time" placeholder="开始时间" />
+                  <span class="sep">~</span>
+                  <input class="ipt ipt-time" placeholder="结束时间" />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="lbl"><span class="req">*</span>自动发放返利</div>
+              <div class="ctrl">
+                <div class="chk-group">
+                  <label class="chk"><input type="radio" name="autoRebate" />是</label>
+                  <label class="chk"><input type="radio" name="autoRebate" />否</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="lbl"><span class="req">*</span>统计范围</div>
+              <div class="ctrl">
+                <div class="chk-group">
+                  <label class="chk"><input type="checkbox" />分销订单</label>
+                  <label class="chk"><input type="checkbox" />积分订单</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="lbl"><span class="req">*</span>出库时间</div>
+              <div class="ctrl">
+                <div class="ipt-time-wrap2">
+                  <input class="ipt ipt-time" placeholder="开始时间" />
+                  <span class="sep">~</span>
+                  <input class="ipt ipt-time" placeholder="结束时间" />
+                </div>
+                <div style="padding-left:10px;margin-top:6px;color:#9ca8b7;font-size:13px">门店允许出库的时间</div>
+              </div>
+            </div>
+
+            <div class="form-row row-table">
+              <div class="lbl">出库商品</div>
+              <div class="ctrl">
+                <div class="row-inline">
+                  <a class="get-link">获取出库商品</a>
+                  <span class="tip">根据养牛活动带出出库商品</span>
+                </div>
+                <div class="table-mini">
+                  <table style="width:100%;table-layout:fixed">
+                    <colgroup>
+                      <col style="width:54px">
+                      <col style="width:90px">
+                      <col style="width:78px">
+                      <col style="width:290px">
+                      <col style="width:80px">
+                      <col style="width:80px">
+                    </colgroup>
+                    <thead>
+                      <tr>
+                        <th style="width:54px">操作</th>
+                        <th style="width:90px">名称</th>
+                        <th style="width:78px">分销商品ID</th>
+                        <th style="width:290px">分销商品名称</th>
+                        <th style="width:80px">规格类型</th>
+                        <th style="width:80px">出库数量</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td colspan="6" style="color:#c0c8d4">&nbsp;</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="lbl">&nbsp;</div>
+              <div class="ctrl">
+                <div class="warning">⚠ 同一时间段内的规则不允许多重，请勿与所有规则的时间重叠。</div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn-save" id="nsa-create-save">保存</button>
+              <button class="btn-cancel" id="nsa-create-cancel">取消</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 编辑NSA配额规则：结构与新增一致，字段值按截图预填 -->
+        <div id="nsa-edit" style="display:none">
+
+          <!-- 面包屑：扫码配置 / 编辑NSA配额规则 -->
+          <div class="breadcrumb" style="margin:0 0 14px">
+            <a>扫码配置</a>&nbsp;/&nbsp;<span>编辑NSA配额规则</span>
+          </div>
+
+          <div class="form-card">
+            <p class="form-title">编辑NSA配额规则</p>
+
+            <div class="form-row">
+              <div class="lbl"><span class="req">*</span>规则名称</div>
+              <div class="ctrl">
+                <input class="ipt" maxlength="30" value="8月NSA配额规则" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="lbl"><span class="req">*</span>所属活动</div>
+              <div class="ctrl">
+                <div class="sel">美赞牧场25年招新活动</div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="lbl"><span class="req">*</span>统计时间</div>
+              <div class="ctrl">
+                <div class="ipt-time-wrap2">
+                  <input class="ipt ipt-time" value="2026-08-01 00:00:00" />
+                  <span class="sep">~</span>
+                  <input class="ipt ipt-time" value="2026-08-31 23:59:59" />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="lbl"><span class="req">*</span>自动发放返利</div>
+              <div class="ctrl">
+                <div class="chk-group">
+                  <label class="chk"><input type="radio" name="autoRebateEdit" checked />是</label>
+                  <label class="chk"><input type="radio" name="autoRebateEdit" />否</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="lbl"><span class="req">*</span>统计范围</div>
+              <div class="ctrl">
+                <div class="chk-group">
+                  <label class="chk"><input type="checkbox" checked />分销订单</label>
+                  <label class="chk"><input type="checkbox" checked />积分订单</label>
+                </div>
+                <div class="desc-block">
+                  <p>分销订单：统计分销商品规格类型为<em>「小罐」</em>的指定出库商品的分销订单，以订单完成时间为准，在统计时间内订单已完成的商品数量；只有总店能下单，都统计给总店。</p>
+                  <p>积分订单：统计积分订单，积分商品需获取罐码且返回的罐码对应商品名称为<em>配置的指定出库商品</em>的订单商品数量，以积分兑换订单已发货为准，统计时间内订单已发货的商品数量；总店或分店自己兑换，都统计给分店关联的总店。</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="lbl"><span class="req">*</span>出库时间</div>
+              <div class="ctrl">
+                <div class="ipt-time-wrap2">
+                  <input class="ipt ipt-time" value="2026-08-07 09:40:00" />
+                  <span class="sep">~</span>
+                  <input class="ipt ipt-time" value="2026-08-31 23:59:59" />
+                </div>
+                <div class="tip-line">门店允许出库的时间</div>
+              </div>
+            </div>
+
+            <div class="form-row row-table">
+              <div class="lbl">出库商品</div>
+              <div class="ctrl">
+                <div class="row-inline">
+                  <a class="get-link">获取出库商品</a>
+                  <span class="tip">根据养牛活动带出出库商品</span>
+                </div>
+                <div class="table-mini">
+                  <table style="width:100%;table-layout:fixed">
+                    <colgroup>
+                      <col style="width:54px">
+                      <col style="width:90px">
+                      <col style="width:78px">
+                      <col style="width:290px">
+                      <col style="width:80px">
+                      <col style="width:80px">
+                    </colgroup>
+                    <thead>
+                      <tr>
+                        <th style="width:54px">操作</th>
+                        <th style="width:90px">名称</th>
+                        <th style="width:78px">分销商品ID</th>
+                        <th style="width:290px">分销商品名称</th>
+                        <th style="width:80px">规格类型</th>
+                        <th style="width:80px">出库数量</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td><a class="link danger" onclick="onDelNsaItem(this)">删除</a></td><td>蓝臻-S3 300G</td><td>326</td><td>美赞臣蓝臻幼儿配方奶粉（12-36月龄，3段）300G</td><td>小罐</td><td class="qty-cell">1</td></tr>
+                      <tr><td><a class="link danger" onclick="onDelNsaItem(this)">删除</a></td><td>蓝臻-S2 300G</td><td>325</td><td>美赞臣蓝臻较大婴儿配方奶粉（6-12月龄，2段）300G</td><td>小罐</td><td class="qty-cell">1</td></tr>
+                      <tr><td><a class="link danger" onclick="onDelNsaItem(this)">删除</a></td><td>蓝臻-S1 300G</td><td>324</td><td>美赞臣蓝臻婴儿配方奶粉（0-6月龄，1段）300G</td><td>小罐</td><td class="qty-cell">1</td></tr>
+                      <tr><td><a class="link danger" onclick="onDelNsaItem(this)">删除</a></td><td>亲舒1-370g</td><td>301</td><td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉370g</td><td>小罐</td><td class="qty-cell">1</td></tr>
+                      <tr><td><a class="link danger" onclick="onDelNsaItem(this)">删除</a></td><td>亲舒1-370g礼品装</td><td>320</td><td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉850g</td><td>大罐</td><td class="qty-cell">1</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="warning" style="margin-top:14px"><span class="ico">⚠</span>同一时间段内的规则不允许重复，请勿与既有规则统计时间重叠。</div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn-save" id="nsa-edit-save">保存</button>
+              <button class="btn-cancel" id="nsa-edit-cancel">取消</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 查看NSA配额规则：只读详情页 -->
+        <div id="nsa-view" style="display:none">
+          <!-- 面包屑：扫码配置 / 查看NSA配额规则 -->
+          <div class="breadcrumb">
+            <a>扫码配置</a>&nbsp;/&nbsp;<span>查看NSA配额规则</span>
+          </div>
+
+          <!-- 顶部标题行 -->
+          <div class="view-head">
+            <a class="nsa-create-back" onclick="nsaShow('list')">← 返回列表</a>
+            <h2 class="view-title">8月NSA配额规则<span class="tag-status on">启用</span></h2>
+          </div>
+
+          <!-- 基本信息 -->
+          <div class="info-card">
+            <div class="info-grid">
+              <div class="info-cell">
+                <span class="info-label">序号</span>
+                <span class="info-val">1</span>
+              </div>
+              <div class="info-cell">
+                <span class="info-label">规则名称</span>
+                <span class="info-val">8月NSA配额规则</span>
+              </div>
+              <div class="info-cell">
+                <span class="info-label">所属活动</span>
+                <span class="info-val">美赞牧场25年招新活动</span>
+              </div>
+              <div class="info-cell">
+                <span class="info-label">统计范围</span>
+                <span class="info-val">分销订单、积分订单</span>
+              </div>
+              <div class="info-cell">
+                <span class="info-label">自动发放返利</span>
+                <span class="info-val">是</span>
+              </div>
+              <div class="info-cell">
+                <span class="info-label">统计时间</span>
+                <span class="info-val">2026-08-01 00:00:00 ~ 2026-08-31 23:59:59</span>
+              </div>
+              <div class="info-cell">
+                <span class="info-label">出库时间</span>
+                <span class="info-val">2026-08-07 09:40:00 ~ 2026-08-31 23:59:59</span>
+              </div>
+              <div class="info-cell">
+                <span class="info-label">创建时间</span>
+                <span class="info-val"><div class="col-time"><span>账号名称</span><span style="color:#9ca8b7">2026-08-07 08:54:15</span></div></span>
+              </div>
+              <div class="info-cell">
+                <span class="info-label">更新时间</span>
+                <span class="info-val"><div class="col-time"><span>账号名称</span><span style="color:#9ca8b7">2026-08-18 16:16:55</span></div></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 出库商品 -->
+          <div class="view-section">
+            <h3 class="view-section-title">出库商品</h3>
+            <div class="table-wrap view-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>名称</th>
+                    <th>分销商品ID</th>
+                    <th>分销商品名称</th>
+                    <th>规格类型</th>
+                    <th>出库数量</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>蓝臻-S3 300G</td>
+                    <td>326</td>
+                    <td>美赞臣蓝臻幼儿配方奶粉（12-36月龄,3段）300G</td>
+                    <td>小罐</td>
+                    <td>1</td>
+                  </tr>
+                  <tr>
+                    <td>蓝臻-S2 300G</td>
+                    <td>325</td>
+                    <td>美赞臣蓝臻较大婴儿配方奶粉（6-12月龄,2段）300G</td>
+                    <td>小罐</td>
+                    <td>1</td>
+                  </tr>
+                  <tr>
+                    <td>蓝臻-S1 300G</td>
+                    <td>324</td>
+                    <td>美赞臣蓝臻婴儿配方奶粉（0-6月龄,1段）300G</td>
+                    <td>小罐</td>
+                    <td>1</td>
+                  </tr>
+                  <tr>
+                    <td>亲舒1-370g</td>
+                    <td>301</td>
+                    <td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉370g</td>
+                    <td>小罐</td>
+                    <td>1</td>
+                  </tr>
+                  <tr>
+                    <td>亲舒1-370g礼品装</td>
+                    <td>320</td>
+                    <td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉850g</td>
+                    <td>大罐</td>
+                    <td>1</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 统计规则说明 -->
+          <div class="rule-tips">
+            <h3 class="rule-tips-title">统计规则说明</h3>
+            <div class="rule-tips-body">
+              <p>分销订单：统计分销商品规格类型为<em>「小罐」</em>的指定出库商品的分销订单，以订单完成时间为准，在统计时间内订单已完成的商品数量；只有总店能下单，都统计给总店。</p>
+              <p>积分订单：统计积分订单，积分商品需获取罐码且返回的罐码对应商品名称为<em>配置的指定出库商品</em>的订单商品数量，以积分兑换订单已发货为准，统计时间内订单已发货的商品数量；总店或分店自己兑换，都统计给分店关联的总店。</p>
+            </div>
+          </div>
+        </div><!-- /#nsa-view -->
+
+      </div>
+
+      <!-- ============== View: 扫码出库 ============== -->
+      <div class="view view-qc" id="view-qc">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+          <a>扫码配置</a>&nbsp;/&nbsp;<span>扫码出库</span>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+
+          <!-- Filter Row 1: 门店ID / 会员手机号 / 状态 -->
+          <div class="filters">
+            <span class="filter-label">门店ID</span>
+            <input placeholder="请输入门店ID" style="width:170px;height:34px;border:1px solid #dfe5ee;border-radius:4px;padding:0 12px;color:#17283d;font-size:13px;outline:none" />
+            <span class="filter-label">会员手机号</span>
+            <input placeholder="请输入会员手机号" style="width:180px;height:34px;border:1px solid #dfe5ee;border-radius:4px;padding:0 12px;color:#17283d;font-size:13px;outline:none" />
+            <span class="filter-label">状态</span>
+            <div class="select" style="width:120px">全部</div>
+            <div style="flex:1"></div>
+            <button class="btn primary">查询</button>
+            <button class="btn">重置</button>
+            <a style="color:var(--blue);font-size:13px;cursor:pointer;margin-left:4px">更多筛选&nbsp;⌄</a>
+          </div>
+
+          <!-- Filter Row 2: 订单号 / 是否推送订单成功 / 是否推送小票成功 -->
+          <div class="filters" style="margin-top:-6px">
+            <span class="filter-label">订单号</span>
+            <input placeholder="请输入订单号" style="width:190px;height:34px;border:1px solid #dfe5ee;border-radius:4px;padding:0 12px;color:#17283d;font-size:13px;outline:none" />
+            <span class="filter-label">是否推送订单成功</span>
+            <div class="select" style="width:140px">全部</div>
+            <span class="filter-label">是否推送小票成功</span>
+            <div class="select" style="width:140px">全部</div>
+          </div>
+
+          <!-- Filter Row 3: 选择活动类型 / 活动名称 / 订单创建时间 -->
+          <div class="filters" style="margin-top:-6px">
+            <span class="filter-label">选择活动类型</span>
+            <div class="select" style="width:140px">全部</div>
+            <span class="filter-label">活动名称</span>
+            <input placeholder="请输入活动名称" style="width:180px;height:34px;border:1px solid #dfe5ee;border-radius:4px;padding:0 12px;color:#17283d;font-size:13px;outline:none" />
+            <span class="filter-label">订单创建时间</span>
+            <div class="select" style="width:140px">开始时间</div>
+            <span style="color:#9ca8b7">~</span>
+            <div class="select" style="width:140px">结束时间</div>
+          </div>
+
+          <!-- Filter Row 4: 发放方式 / 返利状态 -->
+          <div class="filters" style="margin-top:-6px">
+            <span class="filter-label">发放方式</span>
+            <div class="select" style="width:140px">全部</div>
+            <span class="filter-label">返利状态</span>
+            <div class="select" style="width:140px">全部</div>
+          </div>
+
+          <!-- Action Bar -->
+          <div class="actions">
+            <div class="left-actions">
+              <button class="btn primary"><span class="ico">⊕</span>一键审核</button>
+              <button class="btn primary"><span class="ico">⊕</span>一键重推</button>
+              <button class="btn" title="导出字段含：订单号、门店ID、门店名称、会员ID、会员手机号、商品名称、操作人、状态、创建/更新时间、返利发放、返利状态、失败原因"><span class="ico">↑</span>导出</button>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="table-wrap">
+            <table class="qc-table" style="table-layout:fixed;width:100%">
+              <colgroup>
+                <col style="width:32px">
+                <col style="width:140px">
+                <col style="width:64px">
+                <col style="width:110px">
+                <col style="width:170px">
+                <col style="width:120px">
+                <col style="width:200px">
+                <col style="width:110px">
+                <col style="width:90px">
+                <col style="width:78px">
+                <col style="width:124px">
+                <col style="width:124px">
+                <col style="width:60px">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th style="width:32px"><input type="checkbox" onclick="qcCheckAll(this)" /></th>
+                  <th style="width:140px">订单号</th>
+                  <th style="width:64px">门店ID</th>
+                  <th style="width:110px">门店名称</th>
+                  <th style="width:170px">会员ID</th>
+                  <th style="width:120px">会员手机号</th>
+                  <th style="width:200px">商品名称</th>
+                  <th style="width:110px">操作人</th>
+                  <th style="width:90px">操作人ID</th>
+                  <th style="width:78px">状态</th>
+                  <th style="width:124px">创建时间</th>
+                  <th style="width:124px">更新时间</th>
+                  <th style="width:60px">操作</th>
+                </tr>
+              </thead>
+              <tbody id="qc-tbody"></tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="pagination">
+            <span class="total">共 5747 条</span>
+            <button class="page-btn disabled">‹</button>
+            <button class="page-btn">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">4</button>
+            <button class="page-btn">5</button>
+            <button class="page-btn">6</button>
+            <button class="page-btn active">7</button>
+            <button class="page-btn">8</button>
+            <button class="page-btn">9</button>
+            <button class="page-btn">›</button>
+            <input class="page-input" value="7" />
+          </div>
+
+        </div>
+
+        <!-- ============== 扫码出库：详情页 #qc-view ============== -->
+        <div id="qc-view" style="display:none">
+          <!-- 面包屑：扫码出库 / 查看详情 -->
+          <div class="breadcrumb">
+            <a onclick="qcShow('list')">扫码出库</a>&nbsp;/&nbsp;<span>查看详情</span>
+          </div>
+
+          <!-- 顶部标题行 -->
+          <div class="view-head">
+            <a class="qc-view-back" onclick="qcShow('list')">← 返回列表</a>
+            <h2 class="view-title"><span id="qc-view-title">九芽母婴</span><span class="tag-status danger" id="qc-view-badge">待配置</span></h2>
+          </div>
+
+          <!-- 基本信息：4 列 × 5 行（18 字段 + 2 空） -->
+          <div class="info-card">
+            <h3 class="view-section-title">基本信息</h3>
+            <div class="info-grid info-grid-4">
+              <div class="info-cell"><span class="info-label">订单号</span><span class="info-val" id="qc-info-orderNo">-</span></div>
+              <div class="info-cell"><span class="info-label">活动ID</span><span class="info-val" id="qc-info-activityId">-</span></div>
+              <div class="info-cell"><span class="info-label">活动名称</span><span class="info-val" id="qc-info-activityName">-</span></div>
+              <div class="info-cell"><span class="info-label">门店ID</span><span class="info-val" id="qc-info-storeId">-</span></div>
+
+              <div class="info-cell"><span class="info-label">门店名称</span><span class="info-val" id="qc-info-storeName">-</span></div>
+              <div class="info-cell"><span class="info-label">会员ID</span><span class="info-val" id="qc-info-memberId">-</span></div>
+              <div class="info-cell"><span class="info-label">会员手机号</span><span class="info-val" id="qc-info-memberPhone">-</span></div>
+              <div class="info-cell"><span class="info-label">操作人</span><span class="info-val" id="qc-info-operator">-</span></div>
+
+              <div class="info-cell"><span class="info-label">操作人ID</span><span class="info-val" id="qc-info-operatorId">-</span></div>
+              <div class="info-cell"><span class="info-label">操作人类型</span><span class="info-val" id="qc-info-operatorType">-</span></div>
+              <div class="info-cell"><span class="info-label">活动类型</span><span class="info-val" id="qc-info-activityType">-</span></div>
+              <div class="info-cell"><span class="info-label">小票</span><span class="info-val" id="qc-info-ticket">-</span></div>
+
+              <div class="info-cell"><span class="info-label">CMP审核结果</span><span class="info-val" id="qc-info-cmpAudit">-</span></div>
+              <div class="info-cell"><span class="info-label">返利类型</span><span class="info-val" id="qc-info-rebateType">-</span></div>
+              <div class="info-cell"><span class="info-label">发放返利</span><span class="info-val" id="qc-info-issuedRebate">-</span></div>
+              <div class="info-cell"><span class="info-label">创建时间</span><span class="info-val" id="qc-info-createTime">-</span></div>
+
+              <div class="info-cell"><span class="info-label">优惠券ID</span><span class="info-val" id="qc-info-couponId">-</span></div>
+              <div class="info-cell"><span class="info-label">优惠券名称</span><span class="info-val" id="qc-info-couponName">-</span></div>
+              <div class="info-cell" id="qc-cell-issue"><span class="info-label">返利发放</span><span class="info-val" id="qc-info-rebateIssue">-</span></div>
+              <div class="info-cell" id="qc-cell-issueStatus" style="display:none"><span class="info-label">返利发放状态</span><span class="info-val" id="qc-info-rebateIssueStatus">-</span></div>
+              <div class="info-cell" id="qc-cell-failReason" style="display:none"><span class="info-label">失败原因</span><span class="info-val" id="qc-info-failReason">-</span></div>
+            </div>
+          </div>
+
+          <!-- 商品信息 / 操作日志 tab -->
+          <div class="view-section">
+            <div class="tab-bar">
+              <span class="tab-bar-item active" data-tab="goods" onclick="qcTabSwitch('goods')">商品信息</span>
+              <span class="tab-bar-item" data-tab="logs" onclick="qcTabSwitch('logs')">操作日志</span>
+            </div>
+
+            <!-- 商品信息 panel -->
+            <div class="tab-panel" id="qc-tab-goods">
+              <div class="table-wrap view-table">
+                <table class="qc-view-table">
+                  <thead>
+                    <tr>
+                      <th>商品名称</th>
+                      <th>罐底码</th>
+                      <th>箱码</th>
+                      <th>经销商</th>
+                      <th>美赞臣门店编码</th>
+                      <th>门店编码</th>
+                      <th>门店名称</th>
+                      <th>门店关系</th>
+                      <th>罐底码来源</th>
+                    </tr>
+                  </thead>
+                  <tbody id="qc-goods-tbody">
+                    <tr>
+                      <td id="qc-goods-name">-</td>
+                      <td id="qc-goods-channelId">-</td>
+                      <td id="qc-goods-code">-</td>
+                      <td id="qc-goods-dealer">-</td>
+                      <td id="qc-goods-mzStoreCode">-</td>
+                      <td id="qc-goods-storeCode">-</td>
+                      <td id="qc-goods-storeName">-</td>
+                      <td id="qc-goods-storeRelation">-</td>
+                      <td id="qc-goods-channelSource">-</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- 操作日志 panel -->
+            <div class="tab-panel" id="qc-tab-logs" style="display:none">
+              <div class="empty-state">暂无操作日志</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- 详情弹窗 -->
+  <div class="modal-mask" id="detailModal">
+    <div class="modal-card" role="dialog" aria-labelledby="detailTitle">
+      <div class="modal-head">
+        <span id="detailTitle">详情</span>
+        <span class="close" onclick="closeDetail()">×</span>
+      </div>
+      <div class="modal-body">
+        <div class="modal-toolbar">
+          <button class="btn" onclick="exportDetail()"><span class="ico">⬇</span>导出</button>
+        </div>
+        <div class="modal-table-wrap">
+          <table class="modal-table">
+            <thead>
+              <tr>
+                <th>任务编号</th>
+                <th>返利名目</th>
+                <th>门店ID</th>
+                <th>门店名称</th>
+                <th>导入金额（元）</th>
+              </tr>
+            </thead>
+            <tbody id="detailRows"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <span style="margin-right:auto">共 <span id="detailTotal">0</span> 条</span>
+        <button class="page-btn disabled" id="detailPrev">‹</button>
+        <button class="page-btn active" id="detailNext">›</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增返利任务（手动新增，返利类型默认 人工调整） -->
+  <div class="modal-mask" id="addTaskModal">
+    <div class="modal-card" role="dialog" aria-labelledby="addTaskTitle">
+      <div class="modal-head">
+        <span id="addTaskTitle">新增返利任务</span>
+        <span class="close" onclick="closeAddTask()">×</span>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="lbl">任务名称</div>
+          <div class="ctrl"><input class="ipt" id="addTaskName" placeholder="请输入任务名称" /></div>
+        </div>
+        <div class="form-row">
+          <div class="lbl">返利类型</div>
+          <div class="ctrl">
+            <label class="radio"><input type="radio" name="rebateType" value="人工调整" checked disabled /> 人工调整</label>
+            <label class="radio"><input type="radio" name="rebateType" value="美赞牧场" disabled /> 美赞牧场（系统自动生成）</label>
+            <div class="form-hint">手动新增任务默认「人工调整」；「美赞牧场」类型由系统按天自动生成，不支持手工创建。</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="lbl">备注</div>
+          <div class="ctrl"><textarea id="addTaskRemark" placeholder="选填"></textarea></div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" onclick="closeAddTask()">取消</button>
+        <button class="btn primary" onclick="saveAddTask()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== Top-level view switcher =====
+    function switchView(name){
+      document.querySelectorAll('.crumb-tab .tab').forEach(t=>t.classList.toggle('active', t.dataset.view===name));
+      document.querySelectorAll('.nav-item[data-view]').forEach(s=>s.classList.toggle('active', s.dataset.view===name));
+      document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active', v.id==='view-'+name));
+    }
+    // 顶部产品形态切换：PC 后台 / APP-美赞优购（页内切换，不跳转外部链接）
+    function switchProduct(mode){
+      const pc = document.getElementById('psPc');
+      const app = document.getElementById('psApp');
+      const shell = document.querySelector('.shell');
+      const wrap = document.getElementById('appFrameWrap');
+      const iframe = document.getElementById('appFrame');
+      if(mode === 'app'){
+        app.classList.add('active'); pc.classList.remove('active');
+        shell.style.display = 'none';
+        wrap.classList.add('active');
+        if(!iframe.getAttribute('src')) iframe.setAttribute('src', iframe.dataset.src);
+      }else{
+        pc.classList.add('active'); app.classList.remove('active');
+        shell.style.display = '';
+        wrap.classList.remove('active');
+      }
+    }
+    // URL hash 自动切到对应 PC 视图（支持从总览页带 #rebate/#nsa/#qc 跳转）
+    function applyHashView(){
+      const h = (location.hash || '').replace('#','');
+      if(h && document.getElementById('view-'+h)) switchView(h);
+    }
+    window.addEventListener('hashchange', applyHashView);
+    applyHashView();
+    document.querySelectorAll('.crumb-tab .tab').forEach(t=>{
+      t.addEventListener('click', ()=>switchView(t.dataset.view));
+    });
+    document.querySelectorAll('.subnav .nav-item').forEach(s=>{
+      s.addEventListener('click', ()=>switchView(s.dataset.view));
+    });
+    // NSA 内部 Tab 切换（演示态：active 切换）
+    function bindTabGroup(selector){
+      document.querySelectorAll(selector).forEach(t=>{
+        t.addEventListener('click', ()=>{
+          const group=t.parentElement;
+          group.querySelectorAll(':scope > .ttab, :scope > .stab').forEach(s=>s.classList.remove('active'));
+          t.classList.add('active');
+        });
+      });
+    }
+    bindTabGroup('#view-nsa .nsa-toptabs .ttab');
+    bindTabGroup('#view-nsa .subtabs .stab');
+    // NSA 顶部「← 返回」按钮：把 NSA 顶部 active 切回 NSA配额、二级 stab 切回配额规则、恢复 detail
+    document.getElementById('nsa-back').addEventListener('click', ()=>{
+      // 1) 顶部 tab 回到 NSA配额（NSA 配额 本身 data-empty=0）
+      const nsaTop=document.querySelector('#view-nsa .nsa-toptabs .ttab.active[data-empty="0"]');
+      if(nsaTop){
+        document.querySelectorAll('#view-nsa .nsa-toptabs .ttab').forEach(s=>s.classList.remove('active'));
+        nsaTop.classList.add('active');
+      }
+      // 2) 二级 stab 切回 配额规则
+      const ruleStab=document.querySelector('#view-nsa .subtabs .stab[data-empty="0"]');
+      if(ruleStab){
+        document.querySelectorAll('#view-nsa .subtabs .stab').forEach(s=>s.classList.remove('active'));
+        ruleStab.classList.add('active');
+      }
+      // 3) 显示 detail / 隐藏 empty
+      document.getElementById('nsa-detail').style.display = '';
+      document.getElementById('nsa-empty').style.display  = 'none';
+    });
+    // NSA 顶部 Tab 切换：圈起来的 3 个不展示具体内容，切到空状态
+    document.querySelectorAll('#view-nsa .nsa-toptabs .ttab').forEach(t=>{
+      t.addEventListener('click', ()=>{
+        const isEmpty = t.dataset.empty === '1';
+        document.getElementById('nsa-detail').style.display = isEmpty ? 'none' : '';
+        document.getElementById('nsa-empty').style.display  = isEmpty ? '' : 'none';
+      });
+    });
+    // NSA 二级 Tab（配额规则 / 配额报表）切换：配额报表暂不展示具体数据 → 切空状态
+    document.querySelectorAll('#view-nsa .subtabs .stab').forEach(t=>{
+      t.addEventListener('click', ()=>{
+        const isEmpty = t.dataset.empty === '1';
+        document.getElementById('nsa-detail').style.display = isEmpty ? 'none' : '';
+        document.getElementById('nsa-empty').style.display  = isEmpty ? '' : 'none';
+      });
+    });
+    // NSA 交互占位
+    function toggleSwitch(el){ el.classList.toggle('on'); }
+    function onEditNsa(id){
+      // 把 NSA 顶部切回 NSA配额（detail 模式），防止之前选中 3 个空 tab 导致显示异常
+      const ttabs = document.querySelectorAll('#view-nsa .nsa-toptabs .ttab');
+      ttabs.forEach(t=>t.classList.remove('active'));
+      document.querySelector('#view-nsa .nsa-toptabs .ttab[data-empty="0"]').classList.add('active');
+      // 二级 Tab 切回 配额规则
+      document.querySelectorAll('#view-nsa .subtabs .stab').forEach(s=>s.classList.toggle('active', s.dataset.empty==='0'));
+      nsaShow('edit');
+    }
+    // 只读详情：点击规则名称进入。返回按钮复用 nsaShow('list')
+    function onViewNsa(id){
+      const ttabs = document.querySelectorAll('#view-nsa .nsa-toptabs .ttab');
+      ttabs.forEach(t=>t.classList.remove('active'));
+      document.querySelector('#view-nsa .nsa-toptabs .ttab[data-empty="0"]').classList.add('active');
+      document.querySelectorAll('#view-nsa .subtabs .stab').forEach(s=>s.classList.toggle('active', s.dataset.empty==='0'));
+      nsaShow('view');
+    }
+    function onDelNsaItem(a){
+      if(confirm('确认删除该出库商品？')){
+        const tr = a.closest('tr');
+        if(tr) tr.remove();
+      }
+    }
+
+    // NSA 表单页：list / empty / create / edit / view 五态互斥（subtabs + add-btn 在表单/详情页隐藏）
+    function nsaShow(mode){
+      const root = document.getElementById('view-nsa');
+      const detail = root.querySelector('#nsa-detail');
+      const empty  = root.querySelector('#nsa-empty');
+      const create = root.querySelector('#nsa-create');
+      const edit   = root.querySelector('#nsa-edit');
+      const view   = root.querySelector('#nsa-view');
+      const tabs   = root.querySelector('.subtabs');
+      const addBtn = document.getElementById('nsa-add-btn');
+      const hideNav = (mode==='create' || mode==='edit' || mode==='view');
+      detail.style.display = (mode==='list') ? '' : 'none';
+      empty.style.display  = (mode==='empty') ? '' : 'none';
+      create.style.display = (mode==='create') ? '' : 'none';
+      edit.style.display   = (mode==='edit') ? '' : 'none';
+      view.style.display   = (mode==='view') ? '' : 'none';
+      if(tabs) tabs.style.display = hideNav ? 'none' : '';
+      if(addBtn) addBtn.style.display = hideNav ? 'none' : '';
+    }
+    document.getElementById('nsa-add-btn').addEventListener('click', ()=>{
+      // 把 NSA 顶部切回 NSA配额（detail 模式），防止之前选中 3 个空 tab 导致显示异常
+      const ttabs = document.querySelectorAll('#view-nsa .nsa-toptabs .ttab');
+      ttabs.forEach(t=>t.classList.remove('active'));
+      document.querySelector('#view-nsa .nsa-toptabs .ttab[data-empty="0"]').classList.add('active');
+      nsaShow('create');
+    });
+    document.getElementById('nsa-create-cancel').addEventListener('click', ()=>{
+      nsaShow('list');
+    });
+    document.getElementById('nsa-create-save').addEventListener('click', ()=>{
+      const nameInput = document.querySelector('#nsa-create input.ipt');
+      const name = nameInput.value.trim();
+      if(!name){
+        nameInput.focus();
+        nameInput.style.borderColor = '#f5222d';
+        setTimeout(()=>nameInput.style.borderColor = '', 1200);
+        return;
+      }
+      alert('已保存：' + name);
+      nsaShow('list');
+    });
+    // 编辑页：保存 / 取消
+    document.getElementById('nsa-edit-cancel').addEventListener('click', ()=>{
+      nsaShow('list');
+    });
+    document.getElementById('nsa-edit-save').addEventListener('click', ()=>{
+      const nameInput = document.querySelector('#nsa-edit input.ipt');
+      const name = nameInput.value.trim();
+      if(!name){
+        nameInput.focus();
+        nameInput.style.borderColor = '#f5222d';
+        setTimeout(()=>nameInput.style.borderColor = '', 1200);
+        return;
+      }
+      alert('已保存修改：' + name);
+      nsaShow('list');
+    });
+
+    // 来自截图的真实数据（11 条示例数据，时间从 2026-08-21 到 2026-08-14）
+    // status: 'done' 已执行 / 'pending' 未执行
+    const data = [
+      {id:'20260821135200NG1FWV6J', store:1,  amount:800,   in:'2026-08-21 13:52:01', out:'2026-08-21 13:52:06', status:'done', type:'人工调整'},
+      {id:'20260821134825K4JMDPT6',  store:6,  amount:900,   in:'2026-08-21 13:48:25', out:'2026-08-21 13:48:30', status:'done', type:'人工调整'},
+      {id:'20260821093743UNIYHROQ',  store:3,  amount:0,     in:'2026-08-21 09:37:43', out:'2026-08-21 09:37:50', status:'done', type:'人工调整'},
+      {id:'20260821093245U22D26PC',  store:2,  amount:0,     in:'2026-08-21 09:32:46', out:'2026-08-21 09:32:51', status:'done', type:'人工调整'},
+      {id:'20260819150747PUOZZTEC',  store:3,  amount:0,     in:'2026-08-19 15:07:48', out:'2026-08-19 15:07:53', status:'done', type:'人工调整'},
+      {id:'20260817155734UVZEUIJ8',  store:8,  amount:0,     in:'2026-08-17 15:57:35', out:'2026-08-17 15:57:38', status:'done', type:'人工调整'},
+      {id:'20260817150355C4XLG83W',  store:2,  amount:201,   in:'2026-08-17 15:03:55', out:'',                    status:'pending', type:'人工调整'},
+      {id:'202608171136132WJC5OQU',  store:22, amount:0,     in:'2026-08-17 11:36:13', out:'2026-08-17 11:36:18', status:'done', type:'人工调整'},
+      {id:'20260817103807TVGVC8FZ',  store:2,  amount:0,     in:'2026-08-17 10:38:07', out:'2026-08-17 10:38:09', status:'done', type:'人工调整'},
+      {id:'20260817092205UP0UTZDC',  store:15, amount:0,     in:'2026-08-17 09:22:05', out:'2026-08-17 09:22:08', status:'done', type:'人工调整'},
+      {id:'20260817091834Z9P3E5WX',  store:1,  amount:100,   in:'2026-08-17 09:18:34', out:'',                    status:'pending', type:'人工调整'},
+      {id:'20260814173054V2IWPMV1D',  store:2,  amount:0,     in:'2026-08-14 17:30:55', out:'2026-08-14 17:31:00', status:'done', type:'人工调整'},
+      {id:'20260814155811PG4MV7LO',  store:37, amount:0,     in:'2026-08-14 15:58:12', out:'2026-08-14 15:58:15', status:'done', type:'人工调整'},
+      // 美赞牧场（自动生成）：按天维度，凌晨调 CMP 接口满足条件的 NSA 出库订单汇总为一条任务
+      {id:'20260827030000MSP5WX9A', store:1,  amount:5200.00, in:'2026-08-27 03:00:00', out:'', status:'pending', type:'美赞牧场'},
+      {id:'20260826030000TQ4KZ8XB', store:2,  amount:3680.50, in:'2026-08-26 03:00:00', out:'', status:'pending', type:'美赞牧场'},
+    ];
+    const fmtAmount = v => (v % 1 === 0 && v >= 1000)
+      ? v.toLocaleString('en-US')
+      : v.toString();
+    document.getElementById('rows').innerHTML = data.slice().sort((a,b)=> b.in.localeCompare(a.in)).map(r => {
+      const pending = r.status === 'pending';
+      const isMZ = r.type === '美赞牧场';
+      const statusLabel = (isMZ && pending) ? '待执行' : (pending ? '未执行' : '已执行');
+      const ops = (isMZ && pending)
+        ? `<a class="link" onclick="onRun('${r.id}')">执行</a>`
+        : (pending
+            ? `<a class="link" onclick="onRun('${r.id}')">执行</a>&nbsp;&nbsp;<a class="link" onclick="onDelete('${r.id}')">删除</a>`
+            : '');
+      return `
+      <tr>
+        <td><a class="link" onclick="openDetail('${r.id}')">${r.id}</a></td>
+        <td><span class="type-tag ${isMZ?'mz':'ran'}">${r.type}</span></td>
+        <td>${r.store}</td>
+        <td>${fmtAmount(r.amount)}</td>
+        <td>
+          <div class="col-time">
+            <span class="lbl">导入</span>
+            <span>${r.in}</span>
+          </div>
+        </td>
+        <td>
+          ${pending ? '' : `
+          <div class="col-time">
+            <span class="lbl">执行</span>
+            <span>${r.out}</span>
+          </div>`}
+        </td>
+        <td><span class="status">${statusLabel}</span></td>
+        <td>${ops}</td>
+      </tr>`;
+    }).join('');
+
+    function onRun(id){ alert('执行任务：' + id); }
+    function onDelete(id){
+      if(confirm('确认删除任务 ' + id + ' ?')){
+        const tr = [...document.querySelectorAll('#rows tr')].find(x => x.firstElementChild.textContent === id);
+        if(tr) tr.remove();
+      }
+    }
+
+    // 新增返利任务（手动新增，返利类型默认 人工调整）
+    function openAddTask(){ document.getElementById('addTaskModal').classList.add('show'); }
+    function closeAddTask(){ document.getElementById('addTaskModal').classList.remove('show'); }
+    function saveAddTask(){
+      const name = document.getElementById('addTaskName').value.trim();
+      if(!name){
+        const el = document.getElementById('addTaskName');
+        el.focus(); el.style.borderColor = '#f5222d';
+        setTimeout(()=>el.style.borderColor = '', 1200);
+        return;
+      }
+      alert('已新增任务（返利类型：人工调整）：' + name);
+      document.getElementById('addTaskName').value = '';
+      document.getElementById('addTaskRemark').value = '';
+      closeAddTask();
+    }
+    document.getElementById('addTaskModal').addEventListener('click', e => {
+      if(e.target.id === 'addTaskModal') closeAddTask();
+    });
+
+    // 详情弹窗：每个任务对应的返利导入明细记录
+    // 第一条任务对应截图中的真实示例数据（2 条记录）
+    const detailData = {
+      '20260821135200NG1FWV6J': [
+        {rec:'20260821135200NG1FWV6J', name:'POS3042117240723062-养…', sid:13632, sname:'罐底码门店测试', amt:26.8},
+        {rec:'20260821135200NG1FWV6J', name:'POS3042117173206613-养…', sid:13632, sname:'罐底码门店测试', amt:18888.68},
+      ],
+      '20260821134825K4JMDPT6': [
+        {rec:'20260821134825K4JMDPT6', name:'POS3042108210511203-童…', sid:85201, sname:'重庆解放碑童乐汇店', amt:150},
+        {rec:'20260821134825K4JMDPT6', name:'POS3042108210511204-童…', sid:85202, sname:'重庆南坪童乐汇店', amt:150},
+        {rec:'20260821134825K4JMDPT6', name:'POS3042108210511205-童…', sid:85203, sname:'重庆观音桥童乐汇店', amt:200},
+        {rec:'20260821134825K4JMDPT6', name:'POS3042108210511206-童…', sid:85204, sname:'重庆沙坪坝童乐汇店', amt:150},
+        {rec:'20260821134825K4JMDPT6', name:'POS3042108210511207-童…', sid:85205, sname:'重庆大坪童乐汇店', amt:150},
+        {rec:'20260821134825K4JMDPT6', name:'POS3042108210511208-童…', sid:85206, sname:'重庆杨家坪童乐汇店', amt:100},
+      ],
+      '20260821093743UNIYHROQ': [
+        {rec:'20260821093743UNIYHROQ', name:'POS3042109011523001-孕…', sid:74101, sname:'成都春熙路孕婴世界店', amt:0},
+        {rec:'20260821093743UNIYHROQ', name:'POS3042109011523002-孕…', sid:74102, sname:'成都太古里孕婴世界店', amt:0},
+        {rec:'20260821093743UNIYHROQ', name:'POS3042109011523003-孕…', sid:74103, sname:'成都宽窄巷孕婴世界店', amt:0},
+      ],
+      '20260821093245U22D26PC': [
+        {rec:'20260821093245U22D26PC', name:'POS3042109010940111-奶…', sid:63001, sname:'深圳福田奶粉专卖店', amt:0},
+        {rec:'20260821093245U22D26PC', name:'POS3042109010940112-奶…', sid:63002, sname:'深圳南山奶粉专卖店', amt:0},
+      ],
+      '20260819150747PUOZZTEC': [
+        {rec:'20260819150747PUOZZTEC', name:'POS3042108011557001-辅…', sid:91102, sname:'上海徐汇辅食专门店', amt:0},
+        {rec:'20260819150747PUOZZTEC', name:'POS3042108011557002-辅…', sid:91103, sname:'上海浦东辅食专门店', amt:0},
+        {rec:'20260819150747PUOZZTEC', name:'POS3042108011557003-辅…', sid:91104, sname:'上海长宁辅食专门店', amt:0},
+      ],
+      '20260817155734UVZEUIJ8': [
+        {rec:'20260817155734UVZEUIJ8', name:'POS3042108011557001-养…', sid:50101, sname:'北京朝阳养乐多直营店', amt:0},
+        {rec:'20260817155734UVZEUIJ8', name:'POS3042108011557002-养…', sid:50102, sname:'北京海淀养乐多直营店', amt:0},
+        {rec:'20260817155734UVZEUIJ8', name:'POS3042108011557003-养…', sid:50103, sname:'北京西城养乐多直营店', amt:0},
+        {rec:'20260817155734UVZEUIJ8', name:'POS3042108011557004-养…', sid:50104, sname:'北京东城养乐多直营店', amt:0},
+        {rec:'20260817155734UVZEUIJ8', name:'POS3042108011557005-养…', sid:50105, sname:'北京丰台养乐多直营店', amt:0},
+        {rec:'20260817155734UVZEUIJ8', name:'POS3042108011557006-养…', sid:50106, sname:'北京石景山养乐多直营店', amt:0},
+        {rec:'20260817155734UVZEUIJ8', name:'POS3042108011557007-养…', sid:50107, sname:'北京通州养乐多直营店', amt:0},
+        {rec:'20260817155734UVZEUIJ8', name:'POS3042108011557008-养…', sid:50108, sname:'北京昌平养乐多直营店', amt:0},
+      ],
+      '20260817150355C4XLG83W': [
+        {rec:'20260817150355C4XLG83W', name:'POS3042117240723062-养…', sid:13632, sname:'罐底码门店测试', amt:201},
+      ],
+      '202608171136132WJC5OQU': [
+        {rec:'202608171136132WJC5OQU', name:'POS3042111011523001-童…', sid:11201, sname:'武汉光谷童趣店', amt:0},
+        {rec:'202608171136132WJC5OQU', name:'POS3042111011523002-童…', sid:11202, sname:'武汉汉口童趣店', amt:0},
+      ],
+      '20260817103807TVGVC8FZ': [
+        {rec:'20260817103807TVGVC8FZ', name:'POS3042110011035001-奶…', sid:33101, sname:'杭州西湖奶粉旗舰', amt:0},
+        {rec:'20260817103807TVGVC8FZ', name:'POS3042110011035002-奶…', sid:33102, sname:'杭州拱墅奶粉旗舰', amt:0},
+      ],
+      '20260817092205UP0UTZDC': [
+        {rec:'20260817092205UP0UTZDC', name:'POS3042109010922001-童…', sid:22801, sname:'广州天河童乐汇店', amt:0},
+        {rec:'20260817092205UP0UTZDC', name:'POS3042109010922002-童…', sid:22802, sname:'广州越秀童乐汇店', amt:0},
+        {rec:'20260817092205UP0UTZDC', name:'POS3042109010922003-童…', sid:22803, sname:'广州海珠童乐汇店', amt:0},
+      ],
+      '20260817091834Z9P3E5WX': [
+        {rec:'20260817091834Z9P3E5WX', name:'POS3042109010918001-孕…', sid:11801, sname:'南京新街口孕婴世界', amt:100},
+      ],
+      '20260814173054V2IWPMV1D': [
+        {rec:'20260814173054V2IWPMV1D', name:'POS3042108011755001-养…', sid:44201, sname:'天津和平养乐多店', amt:0},
+        {rec:'20260814173054V2IWPMV1D', name:'POS3042108011755002-养…', sid:44202, sname:'天津河西养乐多店', amt:0},
+      ],
+      '20260814155811PG4MV7LO': [
+        {rec:'20260814155811PG4MV7LO', name:'POS3042108011558001-养…', sid:55201, sname:'苏州工业园母婴店', amt:0},
+        {rec:'20260814155811PG4MV7LO', name:'POS3042108011558002-养…', sid:55202, sname:'苏州姑苏区母婴店', amt:0},
+      ],
+      '20260827030000MSP5WX9A': [
+        {rec:'20260827030000MSP5WX9A-01', name:'POS00000123123-美赞牧场', sid:100001, sname:'美赞牧场总店（华南）', amt:5200.00},
+      ],
+      '20260826030000TQ4KZ8XB': [
+        {rec:'20260826030000TQ4KZ8XB-01', name:'POS00000123123-美赞牧场', sid:100002, sname:'美赞牧场总店（华东）', amt:1888.50},
+        {rec:'20260826030000TQ4KZ8XB-02', name:'POS00000123123-美赞牧场', sid:100003, sname:'美赞牧场总店（华北）', amt:1792.00},
+      ],
+    };
+
+    let currentDetailTaskId = '';
+    function openDetail(taskId){
+      currentDetailTaskId = taskId;
+      const list = detailData[taskId] || [];
+      document.getElementById('detailTotal').textContent = list.length;
+      const tbody = document.getElementById('detailRows');
+      if(list.length === 0){
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9ca8b7;padding:30px 0">暂无明细数据</td></tr>';
+      } else {
+        tbody.innerHTML = list.map(r => `
+          <tr>
+            <td>${taskId}</td>
+            <td>${r.name}</td>
+            <td>${r.sid}</td>
+            <td>${r.sname}</td>
+            <td class="col-amount">${r.amt.toLocaleString('en-US',{minimumFractionDigits:r.amt%1?2:0})}</td>
+          </tr>
+        `).join('');
+      }
+      document.getElementById('detailModal').classList.add('show');
+    }
+    function closeDetail(){
+      document.getElementById('detailModal').classList.remove('show');
+    }
+    function exportDetail(){
+      const id = currentDetailTaskId;
+      alert('导出任务 ' + id + ' 的明细（占位）');
+    }
+    document.getElementById('detailModal').addEventListener('click', e => {
+      if(e.target.id === 'detailModal') closeDetail();
+    });
+
+    // ===== 扫码出库：示例数据 17 行（页 7） =====
+    // 字段顺序：订单号 / 门店ID / 门店名称 / 会员ID / 会员手机号 / 商品名称 / 操作人 / 操作人ID / 状态 / 创建时间 / 更新时间
+    const qcData = [
+      ['POS308261430295752','9563','九芽母婴','2092476795815559169','171****0654','美赞臣亲舒乳蛋白部分水解婴儿配方粉370g * 1','九芽母婴','9563','审核通过','2026-08-26 14:29:57','2026-08-26 14:29:57'],
+      ['POS3082614300658215','9563','九芽母婴','2092478895426310146','162****6030','美赞臣亲舒乳蛋白部分水解婴儿配方粉370g * 1','九芽母婴','9563','审核通过','2026-08-26 14:29:35','2026-08-26 14:29:35'],
+      ['POS3082614295670165','9563','九芽母婴','2092478870948352002','170****6058','美赞臣亲舒乳蛋白部分水解婴儿配方粉370g * 1','九芽母婴','9563','审核通过','2026-08-26 14:27:55','2026-08-26 14:27:55'],
+      ['POS3082614293570713','9563','九芽母婴','2092476350648909826','171****0739','美赞臣亲舒乳蛋白部分水解婴儿配方粉370g * 1','九芽母婴','9563','审核通过','2026-08-26 14:27:36','2026-08-26 14:27:36'],
+      ['POS3082614275545100','9563','九芽母婴','2092476593047695361','171****0657','美赞臣亲舒乳蛋白部分水解婴儿配方粉370g * 1','九芽母婴','9563','审核通过','2026-08-26 14:27:22','2026-08-26 14:27:22'],
+      ['POS3082614273685180','9563','九芽母婴','2092476620990148609','171****0763','美赞臣亲舒乳蛋白部分水解婴儿配方粉370g * 1','九芽母婴','9563','审核通过','2026-08-26 14:26:52','2026-08-26 14:26:52'],
+      ['POS3082614240720010','17286','感君氏活','2052485504656662081','165****0654','美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1','感君氏活','17286','审核通过','2026-08-26 14:07:21','2026-08-26 14:07:21'],
+      ['POS3082614202700010','22396','蓝蜻壹饰','2052493925639584817','162****6030','美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1','蓝蜻壹饰','22396','审核通过','2026-08-26 14:01:03','2026-08-26 14:01:03'],
+      ['POS3082614200179800','68472','百思金作','2052478735120177010','170****6058','美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1','百思金作','68472','待审核','2026-08-26 14:00:34','2026-08-26 14:00:34'],
+      ['POS3082614001586965','16647','妮妮可优生宝现聚婴幼门店(微信)','2052490076704661328','171****0739','美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1','妮妮可优生宝现聚婴幼门店(微信)','16647','审核通过','2026-08-26 14:00:15','2026-08-26 14:00:15'],
+      ['POS3082613750566347','18028','安素叭宣传销柚门格成','2052457254866681082','171****0657','美赞臣亲舒乳蛋白部分水解婴儿配方粉850g * 1','安素叭宣传销柚门格成','18028','审核通过','2026-08-26 13:53:27','2026-08-26 13:53:27'],
+      ['POS3082613722048007','68472','安素叭宣传销柚门格成','2052483301768081220','171****0763','美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1','安素叭宣传销柚门格成','68472','审核通过','2026-08-26 13:43:45','2026-08-26 13:43:45'],
+      ['POS3082613722540029','68472','板师可(微信)','20524833018542751794','165****0654','美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1','板师可(微信)','68472','审核通过','2026-08-26 13:37:30','2026-08-26 13:37:30'],
+      ['POS3082613711343499','68472','板师可(微信)','2052480828534993913','162****6030','美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1','板师可(微信)','68472','审核通过','2026-08-26 13:37:13','2026-08-26 13:37:13'],
+      ['POS3082613365841601','68472','板师可(微信)','20524800857748862449','170****6058','美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1','板师可(微信)','68472','审核通过','2026-08-26 13:36:55','2026-08-26 13:36:55'],
+      ['POS3082613365487832','68472','板师可(微信)','20524800799858668418','171****0739','美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1','板师可(微信)','68472','审核通过','2026-08-26 13:36:44','2026-08-26 13:36:44'],
+      ['POS3082613393735625','68472','板师可(微信)','20524800331997822025','171****0657','美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1','板师可(微信)','68472','审核通过','2026-08-26 13:36:33','2026-08-26 13:36:33'],
+    ];
+
+    // ===== 扫码出库：详情数据 qcDetailMap（按订单号索引）=====
+    const qcDetailMap = {
+      'POS308261430295752':{badge:'审核通过',activityId:'1907735285492322306',activityName:'美赞臣优25年招新活动',operatorType:'门店',activityType:'NSA活动',cmpAuditResult:'通过',rebateType:'首单返利',issuedRebate:'15',couponId:'0',couponName:'',goods:{name:'美赞臣亲舒乳蛋白部分水解婴儿配方粉370g * 1',channelId:'2532477950',code:'26013126712822',dealer:'重庆蕴奶恩牌电子商务股份有限公司',mzStoreCode:'66716094',storeCode:'9563',storeName:'九芽母婴',storeRelation:'本店',channelSource:'E-Tracking'}},
+      'POS3082614300658215':{badge:'审核通过',activityId:'1907735285492322307',activityName:'美赞臣优25年招新活动',operatorType:'门店',activityType:'NSA活动',cmpAuditResult:'通过',rebateType:'首单返利',issuedRebate:'15',couponId:'0',couponName:'',goods:{name:'美赞臣亲舒乳蛋白部分水解婴儿配方粉370g * 1',channelId:'2532477951',code:'26013126712823',dealer:'重庆蕴奶恩牌电子商务股份有限公司',mzStoreCode:'66716094',storeCode:'9563',storeName:'九芽母婴',storeRelation:'本店',channelSource:'E-Tracking'}},
+      'POS3082614295670165':{badge:'审核通过',activityId:'1907735285492322308',activityName:'美赞臣优25年招新活动',operatorType:'门店',activityType:'NSA活动',cmpAuditResult:'通过',rebateType:'首单返利',issuedRebate:'15',couponId:'0',couponName:'',goods:{name:'美赞臣亲舒乳蛋白部分水解婴儿配方粉370g * 1',channelId:'2532477952',code:'26013126712824',dealer:'重庆蕴奶恩牌电子商务股份有限公司',mzStoreCode:'66716094',storeCode:'9563',storeName:'九芽母婴',storeRelation:'本店',channelSource:'E-Tracking'}},
+      'POS3082614293570713':{badge:'待配置',activityId:'1907735285492322305',activityName:'美赞臣优25年招新活动',operatorType:'门店',activityType:'NSA活动',cmpAuditResult:'通过',rebateType:'首单返利',issuedRebate:'15',couponId:'0',couponName:'',goods:{name:'美赞臣亲舒乳蛋白部分水解婴儿配方粉370g * 1',channelId:'2532477949',code:'26013126712821',dealer:'重庆蕴奶恩牌电子商务股份有限公司',mzStoreCode:'66716094',storeCode:'9563',storeName:'九芽母婴',storeRelation:'本店',channelSource:'E-Tracking'}},
+      'POS3082614275545100':{badge:'审核通过',activityId:'1907735285492322309',activityName:'美赞臣优25年招新活动',operatorType:'门店',activityType:'NSA活动',cmpAuditResult:'通过',rebateType:'首单返利',issuedRebate:'15',couponId:'0',couponName:'',goods:{name:'美赞臣亲舒乳蛋白部分水解婴儿配方粉370g * 1',channelId:'2532477953',code:'26013126712825',dealer:'重庆蕴奶恩牌电子商务股份有限公司',mzStoreCode:'66716094',storeCode:'9563',storeName:'九芽母婴',storeRelation:'本店',channelSource:'E-Tracking'}},
+      'POS3082614273685180':{badge:'审核通过',activityId:'1907735285492322310',activityName:'美赞臣优25年招新活动',operatorType:'门店',activityType:'NSA活动',cmpAuditResult:'通过',rebateType:'首单返利',issuedRebate:'15',couponId:'0',couponName:'',goods:{name:'美赞臣亲舒乳蛋白部分水解婴儿配方粉370g * 1',channelId:'2532477954',code:'26013126712826',dealer:'重庆蕴奶恩牌电子商务股份有限公司',mzStoreCode:'66716094',storeCode:'9563',storeName:'九芽母婴',storeRelation:'本店',channelSource:'E-Tracking'}},
+      'POS3082614240720010':{badge:'审核通过',activityId:'1907735285492322311',activityName:'美赞臣优25年招新活动',operatorType:'门店',activityType:'NSA活动',cmpAuditResult:'通过',rebateType:'首单返利',issuedRebate:'20',couponId:'1',couponName:'首单券',goods:{name:'美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1',channelId:'2532477955',code:'26013126712827',dealer:'重庆蕴奶恩牌电子商务股份有限公司',mzStoreCode:'66716094',storeCode:'17286',storeName:'感君氏活',storeRelation:'本店',channelSource:'E-Tracking'}},
+      'POS3082614202700010':{badge:'审核通过',activityId:'1907735285492322312',activityName:'美赞臣优25年招新活动',operatorType:'门店',activityType:'NSA活动',cmpAuditResult:'通过',rebateType:'首单返利',issuedRebate:'20',couponId:'1',couponName:'首单券',goods:{name:'美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1',channelId:'2532477956',code:'26013126712828',dealer:'重庆蕴奶恩牌电子商务股份有限公司',mzStoreCode:'66716094',storeCode:'22396',storeName:'蓝蜻壹饰',storeRelation:'本店',channelSource:'E-Tracking'}},
+      'POS3082614200179800':{badge:'待配置',activityId:'1907735285492322313',activityName:'美赞臣优25年招新活动',operatorType:'门店',activityType:'NSA活动',cmpAuditResult:'审核中',rebateType:'首单返利',issuedRebate:'15',couponId:'0',couponName:'',goods:{name:'美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1',channelId:'2532477957',code:'26013126712829',dealer:'重庆蕴奶恩牌电子商务股份有限公司',mzStoreCode:'66716094',storeCode:'68472',storeName:'百思金作',storeRelation:'本店',channelSource:'E-Tracking'}},
+      'POS3082614001586965':{badge:'审核通过',activityId:'1907735285492322314',activityName:'美赞臣优25年招新活动',operatorType:'门店',activityType:'NSA活动',cmpAuditResult:'通过',rebateType:'首单返利',issuedRebate:'20',couponId:'1',couponName:'首单券',goods:{name:'美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1',channelId:'2532477958',code:'26013126712830',dealer:'重庆蕴奶恩牌电子商务股份有限公司',mzStoreCode:'66716094',storeCode:'16647',storeName:'妮妮可优生宝现聚婴幼门店(微信)',storeRelation:'本店',channelSource:'E-Tracking'}},
+      'POS3082613750566347':{badge:'审核通过',activityId:'1907735285492322315',activityName:'美赞臣优25年招新活动',operatorType:'门店',activityType:'NSA活动',cmpAuditResult:'通过',rebateType:'首单返利',issuedRebate:'15',couponId:'0',couponName:'',goods:{name:'美赞臣亲舒乳蛋白部分水解婴儿配方粉850g * 1',channelId:'2532477959',code:'26013126712831',dealer:'重庆蕴奶恩牌电子商务股份有限公司',mzStoreCode:'66716094',storeCode:'18028',storeName:'安素叭宣传销柚门格成',storeRelation:'本店',channelSource:'E-Tracking'}},
+      'POS3082613722048007':{badge:'审核通过',activityId:'1907735285492322316',activityName:'美赞臣优25年招新活动',operatorType:'门店',activityType:'NSA活动',cmpAuditResult:'通过',rebateType:'首单返利',issuedRebate:'20',couponId:'1',couponName:'首单券',goods:{name:'美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1',channelId:'2532477960',code:'26013126712832',dealer:'重庆蕴奶恩牌电子商务股份有限公司',mzStoreCode:'66716094',storeCode:'68472',storeName:'安素叭宣传销柚门格成',storeRelation:'本店',channelSource:'E-Tracking'}},
+      'POS3082613722540029':{badge:'审核通过',activityId:'1907735285492322317',activityName:'美赞臣优25年招新活动',operatorType:'门店',activityType:'NSA活动',cmpAuditResult:'通过',rebateType:'首单返利',issuedRebate:'20',couponId:'1',couponName:'首单券',goods:{name:'美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1',channelId:'2532477961',code:'26013126712833',dealer:'重庆蕴奶恩牌电子商务股份有限公司',mzStoreCode:'66716094',storeCode:'68472',storeName:'板师可(微信)',storeRelation:'本店',channelSource:'E-Tracking'}},
+      'POS3082613711343499':{badge:'审核通过',activityId:'1907735285492322318',activityName:'美赞臣优25年招新活动',operatorType:'门店',activityType:'NSA活动',cmpAuditResult:'通过',rebateType:'首单返利',issuedRebate:'20',couponId:'1',couponName:'首单券',goods:{name:'美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1',channelId:'2532477962',code:'26013126712834',dealer:'重庆蕴奶恩牌电子商务股份有限公司',mzStoreCode:'66716094',storeCode:'68472',storeName:'板师可(微信)',storeRelation:'本店',channelSource:'E-Tracking'}},
+      'POS3082613365841601':{badge:'审核通过',activityId:'1907735285492322319',activityName:'美赞臣优25年招新活动',operatorType:'门店',activityType:'NSA活动',cmpAuditResult:'通过',rebateType:'首单返利',issuedRebate:'20',couponId:'1',couponName:'首单券',goods:{name:'美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1',channelId:'2532477963',code:'26013126712835',dealer:'重庆蕴奶恩牌电子商务股份有限公司',mzStoreCode:'66716094',storeCode:'68472',storeName:'板师可(微信)',storeRelation:'本店',channelSource:'E-Tracking'}},
+      'POS3082613365487832':{badge:'审核通过',activityId:'1907735285492322320',activityName:'美赞臣优25年招新活动',operatorType:'门店',activityType:'NSA活动',cmpAuditResult:'通过',rebateType:'首单返利',issuedRebate:'20',couponId:'1',couponName:'首单券',goods:{name:'美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1',channelId:'2532477964',code:'26013126712836',dealer:'重庆蕴奶恩牌电子商务股份有限公司',mzStoreCode:'66716094',storeCode:'68472',storeName:'板师可(微信)',storeRelation:'本店',channelSource:'E-Tracking'}},
+      'POS3082613393735625':{badge:'审核通过',activityId:'1907735285492322321',activityName:'美赞臣优25年招新活动',operatorType:'门店',activityType:'NSA活动',cmpAuditResult:'通过',rebateType:'首单返利',issuedRebate:'20',couponId:'1',couponName:'首单券',goods:{name:'美赞臣蓝罐婴幼儿幼儿配方(0-6月龄,1段) 3000g * 1',channelId:'2532477965',code:'26013126712837',dealer:'重庆蕴奶恩牌电子商务股份有限公司',mzStoreCode:'66716094',storeCode:'68472',storeName:'板师可(微信)',storeRelation:'本店',channelSource:'E-Tracking'}}
+    };
+
+    // ===== V3.3.0 演示数据：返利发放状态 / 失败原因 / NUA（按订单号覆盖）=====
+    if(qcDetailMap['POS308261430295752']){ qcDetailMap['POS308261430295752'].rebateIssueStatus='发放中'; }
+    if(qcDetailMap['POS3082614300658215']){ qcDetailMap['POS3082614300658215'].rebateIssueStatus='已发放'; }
+    if(qcDetailMap['POS3082614295670165']){ qcDetailMap['POS3082614295670165'].rebateIssueStatus='待发放'; }
+    if(qcDetailMap['POS3082614293570713']){ qcDetailMap['POS3082614293570713'].rebateIssueStatus='发放失败'; qcDetailMap['POS3082614293570713'].failReason='CMP二次确认：会员已退款，不满足返利发放条件'; }
+    if(qcDetailMap['POS3082614200179800']){ qcDetailMap['POS3082614200179800'].activityType='NUA活动'; }
+
+
+    function statusClass(s){
+      if(s==='审核通过') return 'qc-ok';
+      if(s==='待审核') return 'qc-pending';
+      if(s==='审核中') return 'qc-wait';
+      return 'qc-loading';
+    }
+    function renderQcTbody(){
+      const tb = document.getElementById('qc-tbody');
+      if(!tb) return;
+      tb.innerHTML = qcData.map((r,i)=>`
+        <tr>
+          <td style="text-align:center"><input type="checkbox" class="qc-row" /></td>
+          <td>${r[0]}</td>
+          <td>${r[1]}</td>
+          <td><a class="qc-storename" onclick="onViewQc(${i})">${r[2]}</a></td>
+          <td>${r[3]}</td>
+          <td>${r[4]}</td>
+          <td>${r[5]}</td>
+          <td>${r[6]}</td>
+          <td>${r[7]}</td>
+          <td><span class="qc-status ${statusClass(r[8])}">${r[8]}</span></td>
+          <td>${r[9]}</td>
+          <td>${r[10]}</td>
+          <td>${(r[8]==='审核通过') ? '<span style="color:#c0c8d4">-</span>' : '<a class="link">审核</a>'}</td>
+        </tr>`).join('');
+    }
+    function qcCheckAll(ck){
+      document.querySelectorAll('#qc-tbody .qc-row').forEach(b => b.checked = ck.checked);
+    }
+    function onDelQc(btn){
+      if(!confirm('确认删除该扫码出库记录？')) return;
+      const tr = btn.closest('tr');
+      tr.parentNode.removeChild(tr);
+    }
+
+    // ===== 扫码出库：详情页模式切换 =====
+    // list ↔ detail 互斥显隐（详情页 #qc-view 是 #view-qc 内的子面板）
+    function qcShow(mode){
+      const root = document.getElementById('view-qc');
+      const list  = root.querySelector('.content');
+      const view  = root.querySelector('#qc-view');
+      const showList = (mode === 'list');
+      if(list) list.style.display = showList ? '' : 'none';
+      if(view) view.style.display = showList ? 'none' : '';
+    }
+
+    // 详情页 tab 切换：商品信息 ↔ 操作日志
+    function qcTabSwitch(tab){
+      const root = document.getElementById('qc-view');
+      if(!root) return;
+      root.querySelectorAll('.tab-bar-item').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === tab);
+      });
+      const goods = root.querySelector('#qc-tab-goods');
+      const logs  = root.querySelector('#qc-tab-logs');
+      if(goods) goods.style.display = (tab === 'goods') ? '' : 'none';
+      if(logs)  logs.style.display  = (tab === 'logs')  ? '' : 'none';
+    }
+
+    // 点击门店名称蓝链 → 进入详情页
+    function onViewQc(rowIdx){
+      const r = qcData[rowIdx];
+      const d = qcDetailMap[r[0]] || {};
+      const goods = d.goods || {};
+      const root = document.getElementById('qc-view');
+      if(!root) return;
+
+      // 标题 + 徽章
+      const titleEl = root.querySelector('#qc-view-title');
+      const badgeEl = root.querySelector('#qc-view-badge');
+      if(titleEl) titleEl.textContent = r[2] || '-';
+      if(badgeEl){
+        badgeEl.textContent = d.badge || '审核通过';
+        badgeEl.className = 'tag-status ' + (d.badge === '待配置' ? 'danger' : 'on');
+      }
+
+      // 基本信息 18 个字段（按 id）
+      const map = {
+        'qc-info-orderNo':    r[0],
+        'qc-info-storeId':    r[1],
+        'qc-info-storeName':  r[2],
+        'qc-info-memberId':   r[3],
+        'qc-info-memberPhone':r[4],
+        'qc-info-createTime': r[9],
+        'qc-info-activityId':    d.activityId    || '-',
+        'qc-info-activityName':  d.activityName  || '-',
+        'qc-info-operator':      r[6],
+        'qc-info-operatorId':    r[7],
+        'qc-info-operatorType':  d.operatorType  || '-',
+        'qc-info-activityType':  d.activityType  || '-',
+        'qc-info-ticket':        '-',
+        'qc-info-cmpAudit':      d.cmpAuditResult|| '-',
+        'qc-info-rebateType':    d.rebateType    || '-',
+        'qc-info-issuedRebate':  d.issuedRebate  || '-',
+        'qc-info-couponId':      d.couponId      || '-',
+        'qc-info-couponName':    d.couponName    || '-'
+      };
+      Object.keys(map).forEach(id => {
+        const el = root.querySelector('#' + id);
+        if(!el) return;
+        const v = map[id];
+        if(v === '' || v === null || v === undefined){
+          el.innerHTML = '<span style="color:#c0c8d4">-</span>';
+        } else {
+          el.textContent = v;
+        }
+      });
+
+      // ===== V3.3.0 新增：返利发放 / 返利发放状态 / 失败原因 =====
+      const nsaRuleAutoRebate = '是'; // 演示：当前生效 NSA配额规则.自动发放返利（取 8月规则=是）
+      let rebateIssue = '人工发放';
+      if(d.activityType === 'NUA活动') rebateIssue = '人工发放';
+      else if(d.activityType === 'NSA活动') rebateIssue = (nsaRuleAutoRebate === '是') ? '自动发放' : '人工发放';
+      let rebateIssueStatus = d.rebateIssueStatus || (rebateIssue === '自动发放' ? '发放中' : '');
+      const failReason = d.failReason || '';
+      const cellIssue  = root.querySelector('#qc-cell-issue');
+      const cellStatus = root.querySelector('#qc-cell-issueStatus');
+      const cellFail   = root.querySelector('#qc-cell-failReason');
+      const vIssue  = root.querySelector('#qc-info-rebateIssue');
+      const vStatus = root.querySelector('#qc-info-rebateIssueStatus');
+      const vFail   = root.querySelector('#qc-info-failReason');
+      if(vIssue) vIssue.textContent = rebateIssue;
+      if(rebateIssue === '人工发放'){
+        if(cellStatus) cellStatus.style.display='none';
+        if(cellFail) cellFail.style.display='none';
+      } else {
+        if(cellStatus) cellStatus.style.display='';
+        if(vStatus) vStatus.textContent = rebateIssueStatus;
+        if(rebateIssueStatus === '发放失败'){
+          if(cellFail) cellFail.style.display='';
+          if(vFail) vFail.textContent = failReason;
+        } else {
+          if(cellFail) cellFail.style.display='none';
+        }
+      }
+
+      // 商品信息 9 列
+      const gmap = {
+        'qc-goods-name':          goods.name,
+        'qc-goods-channelId':     goods.channelId,
+        'qc-goods-code':          goods.code,
+        'qc-goods-dealer':        goods.dealer,
+        'qc-goods-mzStoreCode':   goods.mzStoreCode,
+        'qc-goods-storeCode':     goods.storeCode,
+        'qc-goods-storeName':     goods.storeName,
+        'qc-goods-storeRelation': goods.storeRelation,
+        'qc-goods-channelSource': goods.channelSource
+      };
+      Object.keys(gmap).forEach(id => {
+        const el = root.querySelector('#' + id);
+        if(el) el.textContent = gmap[id] || '-';
+      });
+
+      // 默认显示商品信息 tab
+      qcTabSwitch('goods');
+      qcShow('detail');
+    }
+
+    renderQcTbody();
+  </script>
+</body>
+</html>
