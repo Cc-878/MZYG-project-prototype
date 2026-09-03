@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>扫码配置 · PC 后台原型</title>
+<title>V3.3.0 扫码配置 · PC 后台原型</title>
 <style>
   :root{--navy:#102a4d;--navy-deep:#0b2140;--blue:#4c7ff0;--blue-light:#eef3ff;--text:#26364a;--muted:#8c9bae;--border:#e8edf4;--bg:#f5f7fb;--danger:#e5544d;--success:#1eae74}
   *{box-sizing:border-box}body{margin:0;color:var(--text);font:14px/1.45 "Microsoft YaHei","PingFang SC",Arial,sans-serif;background:#fff}button,input,select,textarea{font:inherit}button{cursor:pointer}
@@ -1264,16 +1264,16 @@
             </div>
           </div>
           <div class="table-wrap">
-            <table style="min-width:1200px">
+            <table style="min-width:1400px">
               <thead><tr>
-                <th>门店ID</th><th>门店名称</th><th>门店类型</th><th>分销订单数量</th><th>积分订单数量</th>
+                <th>门店ID</th><th>门店名称</th><th>门店类型</th><th>分销商品ID</th><th>分销商品名称</th><th>分销商品数量</th><th>积分商品数量</th>
                 <th>调整数量</th><th>合计数量</th><th>已用数量</th><th>剩余数量</th><th>创建时间</th><th>更新时间</th>
               </tr></thead>
               <tbody id="nsa-report-edit-body">
-                <tr><td>9715</td><td>合肥市包河区爱婴坊</td><td>分店</td><td>3</td><td>2</td><td><input class="cell-input" value="0" style="min-width:80px" onchange="recalcNsaReportRow(this)"></td><td class="report-sum">5</td><td>0</td><td class="report-left">5</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
-                <tr><td>14011</td><td>润心宝贝</td><td>分店</td><td>2</td><td>1</td><td><input class="cell-input" value="0" style="min-width:80px" onchange="recalcNsaReportRow(this)"></td><td class="report-sum">3</td><td>1</td><td class="report-left">2</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
-                <tr><td>18579</td><td>差不多的母婴喂养馆</td><td>分店</td><td>1</td><td>0</td><td><input class="cell-input" value="0" style="min-width:80px" onchange="recalcNsaReportRow(this)"></td><td class="report-sum">1</td><td>0</td><td class="report-left">1</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
-                <tr><td>5229</td><td>福州市鼓楼区杨桥母婴店</td><td>总店</td><td>4</td><td>0</td><td><input class="cell-input" value="0" style="min-width:80px" onchange="recalcNsaReportRow(this)"></td><td class="report-sum">4</td><td>2</td><td class="report-left">2</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
+                <tr><td>9715</td><td>合肥市包河区爱婴坊</td><td>总店</td><td>326</td><td>蓝臻-S3 300G</td><td>3</td><td>2</td><td><input class="cell-input" value="0" style="min-width:80px" onchange="recalcNsaReportRow(this)"></td><td class="report-sum">5</td><td>0</td><td class="report-left">5</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
+                <tr><td>14011</td><td>润心宝贝</td><td>总店</td><td>325</td><td>蓝臻-S2 300G</td><td>2</td><td>1</td><td><input class="cell-input" value="0" style="min-width:80px" onchange="recalcNsaReportRow(this)"></td><td class="report-sum">3</td><td>1</td><td class="report-left">2</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
+                <tr><td>18579</td><td>差不多的母婴喂养馆</td><td>总店</td><td>324</td><td>蓝臻-S1 300G</td><td>1</td><td>0</td><td><input class="cell-input" value="0" style="min-width:80px" onchange="recalcNsaReportRow(this)"></td><td class="report-sum">1</td><td>0</td><td class="report-left">1</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
+                <tr><td>5229</td><td>福州市鼓楼区杨桥母婴店</td><td>总店</td><td>301</td><td>亲舒S1-370g</td><td>4</td><td>0</td><td><input class="cell-input" value="0" style="min-width:80px" onchange="recalcNsaReportRow(this)"></td><td class="report-sum">4</td><td>2</td><td class="report-left">2</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
               </tbody>
             </table>
           </div>
@@ -1318,16 +1318,16 @@
           </div>
           <div class="hint">合计2083家门店，搜索和导出查看全部数据</div>
           <div class="table-wrap">
-            <table style="min-width:1200px">
+            <table style="min-width:1400px">
               <thead><tr>
-                <th>门店ID</th><th>门店名称</th><th>门店类型</th><th>分销订单数量</th><th>积分订单数量</th>
+                <th>门店ID</th><th>门店名称</th><th>门店类型</th><th>分销商品ID</th><th>分销商品名称</th><th>分销商品数量</th><th>积分商品数量</th>
                 <th>调整数量</th><th>合计数量</th><th>已用数量</th><th>剩余数量</th><th>创建时间</th><th>更新时间</th>
               </tr></thead>
               <tbody>
-                <tr><td>9715</td><td>合肥市包河区爱婴坊</td><td>分店</td><td>3</td><td>2</td><td>0</td><td>5</td><td>0</td><td>5</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
-                <tr><td>14011</td><td>润心宝贝</td><td>分店</td><td>2</td><td>1</td><td>0</td><td>3</td><td>1</td><td>2</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
-                <tr><td>18579</td><td>差不多的母婴喂养馆</td><td>分店</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
-                <tr><td>5229</td><td>福州市鼓楼区杨桥母婴店</td><td>总店</td><td>4</td><td>0</td><td>0</td><td>4</td><td>2</td><td>2</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
+                <tr><td>9715</td><td>合肥市包河区爱婴坊</td><td>总店</td><td>326</td><td>蓝臻-S3 300G</td><td>3</td><td>2</td><td>0</td><td>5</td><td>0</td><td>5</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
+                <tr><td>14011</td><td>润心宝贝</td><td>总店</td><td>325</td><td>蓝臻-S2 300G</td><td>2</td><td>1</td><td>0</td><td>3</td><td>1</td><td>2</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
+                <tr><td>18579</td><td>差不多的母婴喂养馆</td><td>总店</td><td>324</td><td>蓝臻-S1 300G</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
+                <tr><td>5229</td><td>福州市鼓楼区杨桥母婴店</td><td>总店</td><td>301</td><td>亲舒S1-370g</td><td>4</td><td>0</td><td>0</td><td>4</td><td>2</td><td>2</td><td class="td-2line">账号名称<br>2026-08-07 08:54:15</td><td class="td-2line">账号名称<br>2026-08-18 16:16:55</td></tr>
               </tbody>
             </table>
           </div>
@@ -1374,7 +1374,7 @@
             <!-- 出库商品（获取出库商品按钮） -->
             <div class="form-row"><label class="required">出库商品</label>
               <div class="form-body"><div class="btn-row">
-                <button class="btn small" onclick="toast('已获取出库商品')">获取出库商品</button>
+                <button class="btn small" onclick="getNsaGoods()">获取出库商品</button>
                 <span class="hint" style="margin:0">根据养牛活动带出出库商品</span>
               </div></div>
             </div>
@@ -1391,7 +1391,6 @@
                       <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>蓝臻-S2 300G</td><td>325</td><td>美赞臣蓝臻较大婴儿配方奶粉（6-12月龄,2段）300G</td><td>小罐</td><td>1</td></tr>
                       <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>蓝臻-S1 300G</td><td>324</td><td>美赞臣蓝臻婴儿配方奶粉（0-6月龄,1段）300G</td><td>小罐</td><td>1</td></tr>
                       <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>亲舒S1-370g</td><td>301</td><td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉370g</td><td>小罐</td><td>1</td></tr>
-                      <tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>亲舒1-370g礼品兑换</td><td>320</td><td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉850g</td><td>大罐</td><td>1</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -1441,7 +1440,6 @@
                 <tr><td>蓝臻-S2 300G</td><td>325</td><td>美赞臣蓝臻较大婴儿配方奶粉（6-12月龄,2段）300G</td><td>小罐</td><td>1</td></tr>
                 <tr><td>蓝臻-S1 300G</td><td>324</td><td>美赞臣蓝臻婴儿配方奶粉（0-6月龄,1段）300G</td><td>小罐</td><td>1</td></tr>
                 <tr><td>亲舒S1-370g</td><td>301</td><td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉370g</td><td>小罐</td><td>1</td></tr>
-                <tr><td>亲舒1-370g礼品兑换</td><td>320</td><td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉850g</td><td>大罐</td><td>1</td></tr>
               </tbody>
             </table>
           </div>
@@ -2060,13 +2058,17 @@
   function saveEdit(){ toast('保存成功'); showPage('list'); }
   function saveQuotaEdit(){ toast('保存成功'); showPage('quota-list'); }
   function saveNsaEdit(){ toast('保存成功'); showPage('nsa-rules'); }
+  function getNsaGoods(){
+    // 获取出库商品：接口直接过滤大罐规格，仅返回规格类型为「小罐」的商品
+    restoreNsaData();
+    toast('已获取出库商品（仅返回规格类型为「小罐」的商品）');
+  }
   function restoreNsaData(){
     document.getElementById('nsa-goods-body').innerHTML =
       '<tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>蓝臻-S3 300G</td><td>326</td><td>美赞臣蓝臻幼儿配方奶粉（12-36月龄,3段）300G</td><td>小罐</td><td>1</td></tr>'+
       '<tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>蓝臻-S2 300G</td><td>325</td><td>美赞臣蓝臻较大婴儿配方奶粉（6-12月龄,2段）300G</td><td>小罐</td><td>1</td></tr>'+
       '<tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>蓝臻-S1 300G</td><td>324</td><td>美赞臣蓝臻婴儿配方奶粉（0-6月龄,1段）300G</td><td>小罐</td><td>1</td></tr>'+
-      '<tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>亲舒S1-370g</td><td>301</td><td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉370g</td><td>小罐</td><td>1</td></tr>'+
-      '<tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>亲舒1-370g礼品兑换</td><td>320</td><td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉850g</td><td>大罐</td><td>1</td></tr>';
+      '<tr><td><a class="link" style="color:var(--danger)">删除</a></td><td>亲舒S1-370g</td><td>301</td><td>美赞臣亲舒乳蛋白部分水解婴儿配方奶粉370g</td><td>小罐</td><td>1</td></tr>';
   }
   function toggleNsaNote(){
     document.getElementById('nsa-fenxiao-note').style.display = document.getElementById('nf_fenxiao').checked ? 'block' : 'none';
@@ -2083,13 +2085,13 @@
   function showNsaTab(t){ setNsaSubtab(t); }
   function recalcNsaReportRow(inp){
     var tr = inp.closest('tr');
-    var fxs = parseInt(tr.children[3].textContent)||0;
-    var jfs = parseInt(tr.children[4].textContent)||0;
+    var fxs = parseInt(tr.children[5].textContent)||0;
+    var jfs = parseInt(tr.children[6].textContent)||0;
     var adj = parseInt(inp.value)||0;
-    var used = parseInt(tr.children[7].textContent)||0;
+    var used = parseInt(tr.children[9].textContent)||0;
     var sum = fxs + jfs + adj;
-    tr.children[6].textContent = sum;
-    tr.children[8].textContent = sum - used;
+    tr.children[8].textContent = sum;
+    tr.children[10].textContent = sum - used;
   }
   function batchFillNsaReport(){
     var v = document.getElementById('nsa-report-batch').value;
@@ -2100,14 +2102,21 @@
     });
     toast('已批量填入');
   }
+  function fmtNow(){
+    var d = new Date();
+    function p(n){ return n < 10 ? '0' + n : '' + n; }
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+  }
   function downloadNsaReportTemplate(){
     var rows = document.querySelectorAll('#nsa-report-edit-body tr');
-    var csv = '\uFEFF门店ID,门店名称,调整数量\n';
+    var csv = '\uFEFF门店ID,门店名称,分销商品ID,分销商品名称,调整数量\n';
     rows.forEach(function(tr){
       var id = tr.children[0].textContent.trim();
       var name = tr.children[1].textContent.trim();
+      var gid = tr.children[3].textContent.trim();
+      var gname = tr.children[4].textContent.trim();
       var adj = tr.querySelector('input').value.trim() || '0';
-      csv += id + ',' + name + ',' + adj + '\n';
+      csv += id + ',' + name + ',' + gid + ',' + gname + ',' + adj + '\n';
     });
     var blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
     var a = document.createElement('a');
@@ -2117,7 +2126,7 @@
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(a.href);
-    toast('模板已下载');
+    toast('模板已下载（5 列：门店ID/门店名称/分销商品ID/分销商品名称/调整数量）');
   }
   function importNsaReport(el){
     var file = el.files[0];
@@ -2127,66 +2136,93 @@
       var text = e.target.result;
       var lines = text.split(/\r?\n/).filter(function(l){ return l.trim(); });
       if(lines.length < 2){ toast('导入失败：文件为空'); el.value=''; return; }
+      var tbody = document.getElementById('nsa-report-edit-body');
       var data = [];
       for(var i=1;i<lines.length;i++){
         var parts = lines[i].split(',');
-        if(parts.length < 3) continue;
-        data.push({id: parts[0].trim(), name: parts[1].trim(), adj: parseInt(parts[2].trim())||0});
+        if(parts.length < 5){
+          toast('导入失败：第 ' + i + ' 行列数不足 5 列（门店ID/门店名称/分销商品ID/分销商品名称/调整数量）');
+          el.value = ''; return;
+        }
+        data.push({
+          id: parts[0].trim(),
+          name: parts[1].trim(),
+          gid: parts[2].trim(),
+          gname: parts[3].trim(),
+          adj: parseInt(parts[4].trim()) || 0
+        });
       }
-      var rows = document.querySelectorAll('#nsa-report-edit-body tr');
-      var invalid = [];
-      var matched = 0;
-      rows.forEach(function(tr){
-        var id = tr.children[0].textContent.trim();
-        var name = tr.children[1].textContent.trim();
-        var item = data.find(function(d){ return d.id === id && d.name === name; });
-        if(item){
-          var fxs = parseInt(tr.children[3].textContent)||0;
-          var jfs = parseInt(tr.children[4].textContent)||0;
-          var used = parseInt(tr.children[7].textContent)||0;
-          var sum = fxs + jfs + item.adj;
-          var left = sum - used;
-          if(left < 0) invalid.push(name);
-          matched++;
+      function findRow(id, gid){
+        var found = null;
+        tbody.querySelectorAll('tr').forEach(function(tr){
+          if(tr.children[0].textContent.trim() === id && tr.children[3].textContent.trim() === gid){ found = tr; }
+        });
+        return found;
+      }
+      // 校验：剩余数量 = 分销商品数量 + 积分商品数量 + 调整数量 − 已用数量，任一行 < 0 则整批拦截
+      var errs = [];
+      data.forEach(function(item){
+        var exist = findRow(item.id, item.gid);
+        var fxs = exist ? (parseInt(exist.children[5].textContent) || 0) : 0;
+        var jfs = exist ? (parseInt(exist.children[6].textContent) || 0) : 0;
+        var used = exist ? (parseInt(exist.children[9].textContent) || 0) : 0;
+        var left = fxs + jfs + item.adj - used;
+        if(left < 0){
+          errs.push('门店「' + item.name + '」商品「' + item.gname + '」剩余数量为 ' + left);
         }
       });
-      if(invalid.length > 0){
-        toast('导入失败：以下门店调整后剩余数量将小于0：' + invalid.join('、'));
+      if(errs.length > 0){
+        toast('导入失败：' + errs[0] + '，剩余数量 < 0 不允许导入' + (errs.length > 1 ? '（共 ' + errs.length + ' 处）' : ''));
         el.value = '';
         return;
       }
-      if(matched === 0){
-        toast('未匹配到可导入的门店，请检查门店ID与门店名称');
-        el.value = '';
-        return;
-      }
-      rows.forEach(function(tr){
-        var id = tr.children[0].textContent.trim();
-        var name = tr.children[1].textContent.trim();
-        var item = data.find(function(d){ return d.id === id && d.name === name; });
-        if(item){
-          var inp = tr.querySelector('input');
+      // 执行：已存在 → 覆盖更新调整数量；不存在 → 新增一行（按规则初始化其余列）
+      var added = 0, updated = 0;
+      data.forEach(function(item){
+        var exist = findRow(item.id, item.gid);
+        if(exist){
+          var inp = exist.querySelector('input');
           inp.value = item.adj;
           recalcNsaReportRow(inp);
+          updated++;
+        } else {
+          var tr = document.createElement('tr');
+          var now = fmtNow();
+          tr.innerHTML =
+            '<td>' + item.id + '</td>' +
+            '<td>' + item.name + '</td>' +
+            '<td>总店</td>' +
+            '<td>' + item.gid + '</td>' +
+            '<td>' + item.gname + '</td>' +
+            '<td>0</td>' +
+            '<td>0</td>' +
+            '<td><input class="cell-input" value="' + item.adj + '" style="min-width:80px" onchange="recalcNsaReportRow(this)"></td>' +
+            '<td>' + item.adj + '</td>' +
+            '<td>0</td>' +
+            '<td>' + item.adj + '</td>' +
+            '<td>' + now + '</td>' +
+            '<td>' + now + '</td>';
+          tbody.appendChild(tr);
+          added++;
         }
       });
-      toast('导入成功，共更新 ' + matched + ' 条门店数据，合计与剩余数量已实时更新');
+      toast('导入成功：新增 ' + added + ' 行，更新 ' + updated + ' 行；合计与剩余数量已实时更新');
       el.value = '';
     };
     reader.onerror = function(){ toast('文件读取失败'); el.value=''; };
-    reader.readAsText(file);
+    reader.readAsText(file, 'utf-8');
   }
   function exportNsaReportDetail(){
     var tbody = document.querySelector('#nsa-report-detail-page tbody');
     if(!tbody){ return; }
     var rows = tbody.querySelectorAll('tr');
     if(!rows.length){ toast('暂无可导出数据'); return; }
-    var headers = ['门店ID','门店名称','门店类型','分销订单数量','积分订单数量','调整数量','合计数量','已用数量','剩余数量','创建时间','更新时间'];
+    var headers = ['门店ID','门店名称','门店类型','分销商品ID','分销商品名称','分销商品数量','积分商品数量','调整数量','合计数量','已用数量','剩余数量','创建时间','更新时间'];
     var csv = '\uFEFF' + headers.join(',') + '\n';
     rows.forEach(function(tr){
       var cells = [];
       Array.prototype.forEach.call(tr.children, function(td, i){
-        if(i === 9 || i === 10){
+        if(i === 11 || i === 12){
           var m = td.textContent.match(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
           cells.push(m ? m[0] : td.textContent.replace(/\s+/g,' ').trim());
         } else {
