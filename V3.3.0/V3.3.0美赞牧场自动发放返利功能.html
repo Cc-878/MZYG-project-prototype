@@ -307,6 +307,13 @@
     .form-row .ctrl .form-hint{margin-top:8px;color:#9ca8b7;font-size:12px;line-height:1.6}
     .form-row .ctrl textarea{min-height:70px;width:420px;border:1px solid #dfe5ee;border-radius:4px;padding:8px 12px;font-size:14px;color:#17283d;outline:none;resize:vertical}
     .form-row .ctrl textarea:focus{border-color:var(--blue)}
+    /* 邮箱配置弹窗：多邮箱行 */
+    .form-row .ctrl .email-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+    .form-row .ctrl .email-row .ipt{width:360px}
+    .form-row .ctrl .email-del{color:#f5222d;font-size:13px;cursor:pointer}
+    .form-row .ctrl .email-del:hover{text-decoration:underline}
+    .form-row .ctrl .email-add{display:inline-block;color:var(--blue);font-size:13px;cursor:pointer}
+    .form-row .ctrl .email-add:hover{text-decoration:underline}
     /* APP 视图：页内 iframe 嵌入，切换不离开当前链接 */
     .app-frame-wrap{display:none;position:fixed;left:0;right:0;top:48px;bottom:0;z-index:90;background:#f5f7fb;overflow-y:auto}
     .app-frame-wrap.active{display:block}
@@ -1001,13 +1008,14 @@
               <button class="btn primary"><span class="ico">⬇</span>下载模板</button>
               <button class="btn"><span class="ico">⇪</span>导入</button>
               <button class="btn"><span class="ico">⇧</span>导出</button>
+              <button class="btn" onclick="openEmailConfig()"><span class="ico">📧</span>邮箱配置</button>
             </div>
           </div>
 
-          <!-- 返利预警提示（规则占位，阈值 Y / 通知邮箱 待配置） -->
+          <!-- 返利预警提示（阈值 Y / 通知邮箱 随「邮箱配置」弹窗动态更新） -->
           <div class="alert-note">
             <span class="alert-ico">📧</span>
-            <span><b>返利预警</b>：返利类型 = 美赞牧场，且导入金额 &gt; Y 元时，自动发送邮件至指定邮箱（阈值 Y、通知邮箱待配置）。</span>
+            <span><b>返利预警</b>：返利类型 = 美赞牧场，且导入金额 &gt; <b id="alertThreshold">50,000</b> 元时，自动发送预警邮件至：<span id="alertEmails">zhangsan@meadjohnson.com；lisi@meadjohnson.com</span>。<a style="color:var(--blue);cursor:pointer" onclick="openEmailConfig()">修改配置</a></span>
           </div>
 
           <!-- Table -->
@@ -1803,6 +1811,37 @@
     </div>
   </div>
 
+  <!-- 邮箱配置（返利预警：阈值金额Y + 多个通知邮箱） -->
+  <div class="modal-mask" id="emailConfigModal">
+    <div class="modal-card" role="dialog" aria-labelledby="emailConfigTitle" style="width:640px">
+      <div class="modal-head">
+        <span id="emailConfigTitle">邮箱配置（返利预警）</span>
+        <span class="close" onclick="closeEmailConfig()">×</span>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="lbl"><span class="req">*</span>预警阈值金额</div>
+          <div class="ctrl">
+            <div class="row-inline"><input class="ipt" id="emailThreshold" style="width:200px" type="number" min="0" placeholder="请输入预警阈值金额" /><span class="tip">元</span></div>
+            <div class="form-hint">返利类型 = 美赞牧场，且导入金额 &gt; 该金额时，系统自动向下方配置的邮箱发送预警邮件。</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="lbl"><span class="req">*</span>通知邮箱</div>
+          <div class="ctrl">
+            <div id="emailRows"></div>
+            <span class="email-add" onclick="addEmailRow('')">＋ 添加邮箱</span>
+            <div class="form-hint">支持配置多个邮箱，触发返利预警时向全部邮箱发送预警邮件；同一邮箱请勿重复配置。</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" onclick="closeEmailConfig()">取消</button>
+        <button class="btn primary" onclick="saveEmailConfig()">保存</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ===== Top-level view switcher =====
     function switchView(name){
@@ -2052,6 +2091,60 @@
     document.getElementById('addTaskModal').addEventListener('click', e => {
       if(e.target.id === 'addTaskModal') closeAddTask();
     });
+
+    // ===== 邮箱配置（返利预警）：阈值金额 Y + 多个通知邮箱 =====
+    var emailConfig = { threshold: 50000, emails: ['zhangsan@meadjohnson.com', 'lisi@meadjohnson.com'] };
+    function openEmailConfig(){
+      document.getElementById('emailThreshold').value = emailConfig.threshold;
+      const wrap = document.getElementById('emailRows');
+      wrap.innerHTML = '';
+      emailConfig.emails.forEach(m => addEmailRow(m));
+      if(!emailConfig.emails.length) addEmailRow('');
+      document.getElementById('emailConfigModal').classList.add('show');
+    }
+    function closeEmailConfig(){ document.getElementById('emailConfigModal').classList.remove('show'); }
+    function addEmailRow(val){
+      const wrap = document.getElementById('emailRows');
+      const row = document.createElement('div');
+      row.className = 'email-row';
+      row.innerHTML = '<input class="ipt" placeholder="请输入邮箱" /><span class="email-del">删除</span>';
+      row.querySelector('input').value = val || '';
+      row.querySelector('.email-del').onclick = function(){ row.remove(); };
+      wrap.appendChild(row);
+    }
+    function saveEmailConfig(){
+      const th = parseFloat(document.getElementById('emailThreshold').value);
+      if(!(th > 0)){ alert('请输入大于 0 的预警阈值金额'); return; }
+      const inputs = document.querySelectorAll('#emailRows .email-row input');
+      const emails = [];
+      for(let k = 0; k < inputs.length; k++){
+        const i = inputs[k];
+        const v = i.value.trim();
+        if(!v) continue;
+        if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){
+          i.focus(); i.style.borderColor = '#f5222d';
+          setTimeout(function(){ i.style.borderColor = ''; }, 1200);
+          alert('邮箱格式不正确：' + v);
+          return;
+        }
+        if(emails.indexOf(v) > -1){ alert('邮箱重复配置：' + v); return; }
+        emails.push(v);
+      }
+      if(!emails.length){ alert('请至少配置一个通知邮箱'); return; }
+      emailConfig.threshold = th;
+      emailConfig.emails = emails;
+      renderAlertNote();
+      closeEmailConfig();
+      alert('邮箱配置已保存（预警阈值 ' + th.toLocaleString() + ' 元，通知邮箱 ' + emails.length + ' 个）');
+    }
+    function renderAlertNote(){
+      document.getElementById('alertThreshold').textContent = emailConfig.threshold.toLocaleString();
+      document.getElementById('alertEmails').textContent = emailConfig.emails.join('；');
+    }
+    document.getElementById('emailConfigModal').addEventListener('click', e => {
+      if(e.target.id === 'emailConfigModal') closeEmailConfig();
+    });
+    renderAlertNote();
 
     // 详情弹窗：每个任务对应的返利导入明细记录
     // 第一条任务对应截图中的真实示例数据（2 条记录）
